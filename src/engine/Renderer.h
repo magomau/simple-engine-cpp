@@ -20,11 +20,7 @@ public:
 
 private:
     Shader m_shader;
-    GLuint m_vertexArrayObject;
-    GLuint m_vertexBufferObject;
     bool m_initialized;
-
-    bool createTriangle();
 };
 
 } // namespace simple_engine

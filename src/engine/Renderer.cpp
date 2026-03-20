@@ -3,8 +3,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 
-#include <array>
-
 #include <glm/mat4x4.hpp>
 
 #include "GLFunctions.h"
@@ -40,9 +38,7 @@ void main() {
 } // namespace
 
 Renderer::Renderer()
-    : m_vertexArrayObject(0)
-    , m_vertexBufferObject(0)
-    , m_initialized(false) {
+    : m_initialized(false) {
 }
 
 Renderer::~Renderer() {
@@ -65,10 +61,6 @@ bool Renderer::init(Window& window) {
     glViewport(0, 0, width, height);
 
     if (!m_shader.create(kVertexShaderSource, kFragmentShaderSource)) {
-        return false;
-    }
-
-    if (!createTriangle()) {
         return false;
     }
 
@@ -95,60 +87,23 @@ void Renderer::render(Window& window, const Scene& scene) {
         m_shader.setMatrix4("uView", view);
         m_shader.setMatrix4("uProjection", projection);
 
-        gl::BindVertexArray(m_vertexArrayObject);
         for (const RenderObject& object : scene.getObjects()) {
+            if (!object.mesh) {
+                continue;
+            }
+
             m_shader.setMatrix4("uModel", object.transform.getMatrix());
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            object.mesh->draw();
         }
-        gl::BindVertexArray(0);
     }
 
     window.swapBuffers();
 }
 
 void Renderer::shutdown() {
-    if (m_vertexBufferObject != 0) {
-        gl::DeleteBuffers(1, &m_vertexBufferObject);
-        m_vertexBufferObject = 0;
-        Logger::info("Vertex buffer destroyed.");
-    }
-
-    if (m_vertexArrayObject != 0) {
-        gl::DeleteVertexArrays(1, &m_vertexArrayObject);
-        m_vertexArrayObject = 0;
-        Logger::info("Vertex array destroyed.");
-    }
-
     m_shader.destroy();
     m_initialized = false;
     Logger::info("Renderer shutdown complete.");
-}
-
-bool Renderer::createTriangle() {
-    constexpr std::array<float, 9> vertices = {
-         0.0f,  0.6f, 0.0f,
-        -0.6f, -0.45f, 0.0f,
-         0.6f, -0.45f, 0.0f,
-    };
-
-    gl::GenVertexArrays(1, &m_vertexArrayObject);
-    gl::GenBuffers(1, &m_vertexBufferObject);
-
-    if (m_vertexArrayObject == 0 || m_vertexBufferObject == 0) {
-        Logger::error("Failed to create OpenGL buffers for triangle geometry.");
-        return false;
-    }
-
-    gl::BindVertexArray(m_vertexArrayObject);
-    gl::BindBuffer(GL_ARRAY_BUFFER, m_vertexBufferObject);
-    gl::BufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
-    gl::VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-    gl::EnableVertexAttribArray(0);
-    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
-    gl::BindVertexArray(0);
-
-    Logger::info("Triangle geometry created successfully.");
-    return true;
 }
 
 } // namespace simple_engine

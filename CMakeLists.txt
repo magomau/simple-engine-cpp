@@ -25,6 +25,8 @@ add_executable(SimpleEngine
     src/engine/RenderObject.cpp
     src/engine/Scene.cpp
     src/engine/Camera.cpp
+    src/engine/Mesh.cpp
+    src/engine/PrimitiveFactory.cpp
     src/core/Logger.cpp
 )
 

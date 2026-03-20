@@ -6,8 +6,9 @@ RenderObject::RenderObject()
     : rotationSpeed(0.0f) {
 }
 
-RenderObject::RenderObject(const Transform& initialTransform, float initialRotationSpeed)
-    : transform(initialTransform)
+RenderObject::RenderObject(std::shared_ptr<Mesh> meshValue, const Transform& initialTransform, float initialRotationSpeed)
+    : mesh(meshValue)
+    , transform(initialTransform)
     , rotationSpeed(initialRotationSpeed) {
 }
 
