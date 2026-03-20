@@ -73,6 +73,16 @@ void Window::swapBuffers() const {
     }
 }
 
+void Window::getDrawableSize(int& width, int& height) const {
+    if (!m_window) {
+        width = 0;
+        height = 0;
+        return;
+    }
+
+    SDL_GetWindowSizeInPixels(m_window, &width, &height);
+}
+
 SDL_Window* Window::getNativeHandle() const {
     return m_window;
 }

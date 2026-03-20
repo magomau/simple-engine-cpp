@@ -37,4 +37,12 @@ RenderObject* Scene::getPrimaryObject() {
     return &m_objects.front();
 }
 
+const Camera& Scene::getCamera() const {
+    return m_camera;
+}
+
+Camera& Scene::getCamera() {
+    return m_camera;
+}
+
 } // namespace simple_engine

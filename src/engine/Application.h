@@ -18,6 +18,7 @@ private:
     Input m_input;
     Scene m_scene;
     float m_moveSpeed;
+    float m_cameraSpeed;
 };
 
 } // namespace simple_engine

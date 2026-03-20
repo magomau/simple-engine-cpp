@@ -12,6 +12,7 @@ public:
     bool create(const char* title, int width, int height);
     void destroy();
     void swapBuffers() const;
+    void getDrawableSize(int& width, int& height) const;
 
     SDL_Window* getNativeHandle() const;
     SDL_GLContext getGLContext() const;

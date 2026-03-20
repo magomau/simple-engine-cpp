@@ -5,7 +5,6 @@
 
 #include <array>
 
-#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/mat4x4.hpp>
 
 #include "GLFunctions.h"
@@ -62,7 +61,7 @@ bool Renderer::init(Window& window) {
 
     int width = 0;
     int height = 0;
-    SDL_GetWindowSize(window.getNativeHandle(), &width, &height);
+    window.getDrawableSize(width, height);
     glViewport(0, 0, width, height);
 
     if (!m_shader.create(kVertexShaderSource, kFragmentShaderSource)) {
@@ -81,7 +80,7 @@ bool Renderer::init(Window& window) {
 void Renderer::render(Window& window, const Scene& scene) {
     int width = 0;
     int height = 0;
-    SDL_GetWindowSize(window.getNativeHandle(), &width, &height);
+    window.getDrawableSize(width, height);
     glViewport(0, 0, width, height);
 
     glClearColor(0.08f, 0.12f, 0.24f, 1.0f);
@@ -89,8 +88,8 @@ void Renderer::render(Window& window, const Scene& scene) {
 
     if (m_initialized) {
         const float aspectRatio = height > 0 ? static_cast<float>(width) / static_cast<float>(height) : 1.0f;
-        const glm::mat4 view = glm::mat4(1.0f);
-        const glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
+        const glm::mat4 view = scene.getCamera().getViewMatrix();
+        const glm::mat4 projection = scene.getCamera().getProjectionMatrix(aspectRatio);
 
         m_shader.bind();
         m_shader.setMatrix4("uView", view);

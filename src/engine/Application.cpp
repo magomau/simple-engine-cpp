@@ -8,7 +8,8 @@
 namespace simple_engine {
 
 Application::Application()
-    : m_moveSpeed(1.5f) {
+    : m_moveSpeed(1.5f)
+    , m_cameraSpeed(1.8f) {
 }
 
 void Application::processEvents(bool& running) {
@@ -23,27 +24,46 @@ void Application::processEvents(bool& running) {
 }
 
 void Application::update(float deltaTime) {
-    glm::vec2 direction(0.0f, 0.0f);
+    glm::vec2 objectDirection(0.0f, 0.0f);
+    glm::vec2 cameraDirection(0.0f, 0.0f);
 
     if (m_input.isKeyPressed(SDL_SCANCODE_W)) {
-        direction.y += 1.0f;
+        objectDirection.y += 1.0f;
     }
     if (m_input.isKeyPressed(SDL_SCANCODE_S)) {
-        direction.y -= 1.0f;
+        objectDirection.y -= 1.0f;
     }
     if (m_input.isKeyPressed(SDL_SCANCODE_A)) {
-        direction.x -= 1.0f;
+        objectDirection.x -= 1.0f;
     }
     if (m_input.isKeyPressed(SDL_SCANCODE_D)) {
-        direction.x += 1.0f;
+        objectDirection.x += 1.0f;
     }
 
-    if (glm::length(direction) > 0.0f) {
-        direction = glm::normalize(direction);
+    if (m_input.isKeyPressed(SDL_SCANCODE_UP)) {
+        cameraDirection.y += 1.0f;
+    }
+    if (m_input.isKeyPressed(SDL_SCANCODE_DOWN)) {
+        cameraDirection.y -= 1.0f;
+    }
+    if (m_input.isKeyPressed(SDL_SCANCODE_LEFT)) {
+        cameraDirection.x -= 1.0f;
+    }
+    if (m_input.isKeyPressed(SDL_SCANCODE_RIGHT)) {
+        cameraDirection.x += 1.0f;
+    }
+
+    if (glm::length(objectDirection) > 0.0f) {
+        objectDirection = glm::normalize(objectDirection);
         RenderObject* playerObject = m_scene.getPrimaryObject();
         if (playerObject != nullptr) {
-            playerObject->transform.position += direction * (m_moveSpeed * deltaTime);
+            playerObject->transform.position += objectDirection * (m_moveSpeed * deltaTime);
         }
+    }
+
+    if (glm::length(cameraDirection) > 0.0f) {
+        cameraDirection = glm::normalize(cameraDirection);
+        m_scene.getCamera().position += cameraDirection * (m_cameraSpeed * deltaTime);
     }
 
     m_scene.update(deltaTime);
