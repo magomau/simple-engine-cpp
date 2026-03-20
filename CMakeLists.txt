@@ -17,6 +17,7 @@ add_executable(SimpleEngine
     src/engine/Engine.cpp
     src/engine/Window.cpp
     src/engine/Application.cpp
+    src/engine/Input.cpp
     src/engine/Renderer.cpp
     src/engine/Shader.cpp
     src/engine/GLFunctions.cpp

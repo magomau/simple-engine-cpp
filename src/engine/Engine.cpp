@@ -51,10 +51,17 @@ void Engine::run() {
         return;
     }
 
+    const double performanceFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    Uint64 previousCounter = SDL_GetPerformanceCounter();
+
     while (m_running) {
+        const Uint64 currentCounter = SDL_GetPerformanceCounter();
+        const float deltaTime = static_cast<float>((currentCounter - previousCounter) / performanceFrequency);
+        previousCounter = currentCounter;
+
         m_application->processEvents(m_running);
-        m_application->update();
-        m_renderer->render(*m_window);
+        m_application->update(deltaTime);
+        m_renderer->render(*m_window, m_application->getTrianglePosition());
         SDL_Delay(16);
     }
 }

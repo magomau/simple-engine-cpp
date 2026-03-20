@@ -2,6 +2,8 @@
 
 #include <SDL3/SDL_opengl.h>
 
+#include <glm/vec2.hpp>
+
 #include "Shader.h"
 
 namespace simple_engine {
@@ -14,7 +16,7 @@ public:
     ~Renderer();
 
     bool init(Window& window);
-    void render(Window& window);
+    void render(Window& window, const glm::vec2& trianglePosition);
     void shutdown();
 
 private:

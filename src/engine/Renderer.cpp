@@ -7,8 +7,8 @@
 
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
-#include <glm/gtc/constants.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 #include "GLFunctions.h"
@@ -81,7 +81,7 @@ bool Renderer::init(Window& window) {
     return true;
 }
 
-void Renderer::render(Window& window) {
+void Renderer::render(Window& window, const glm::vec2& trianglePosition) {
     int width = 0;
     int height = 0;
     SDL_GetWindowSize(window.getNativeHandle(), &width, &height);
@@ -94,7 +94,9 @@ void Renderer::render(Window& window) {
         const float aspectRatio = height > 0 ? static_cast<float>(width) / static_cast<float>(height) : 1.0f;
         const float timeSeconds = static_cast<float>(SDL_GetTicks()) / 1000.0f;
 
-        const glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSeconds, glm::vec3(0.0f, 0.0f, 1.0f));
+        const glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::vec3(trianglePosition, 0.0f));
+        const glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), timeSeconds, glm::vec3(0.0f, 0.0f, 1.0f));
+        const glm::mat4 model = translation * rotation;
         const glm::mat4 view = glm::mat4(1.0f);
         const glm::mat4 projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f, -1.0f, 1.0f);
 
