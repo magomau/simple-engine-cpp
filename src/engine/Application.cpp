@@ -1,12 +1,14 @@
 #include "Application.h"
 
+#include <glm/geometric.hpp>
+#include <glm/vec2.hpp>
+
 #include <SDL3/SDL.h>
 
 namespace simple_engine {
 
 Application::Application()
-    : m_trianglePosition(0.0f, 0.0f)
-    , m_moveSpeed(1.5f) {
+    : m_moveSpeed(1.5f) {
 }
 
 void Application::processEvents(bool& running) {
@@ -36,11 +38,19 @@ void Application::update(float deltaTime) {
         direction.x += 1.0f;
     }
 
-    m_trianglePosition += direction * (m_moveSpeed * deltaTime);
+    if (glm::length(direction) > 0.0f) {
+        direction = glm::normalize(direction);
+        RenderObject* playerObject = m_scene.getPrimaryObject();
+        if (playerObject != nullptr) {
+            playerObject->transform.position += direction * (m_moveSpeed * deltaTime);
+        }
+    }
+
+    m_scene.update(deltaTime);
 }
 
-const glm::vec2& Application::getTrianglePosition() const {
-    return m_trianglePosition;
+const Scene& Application::getScene() const {
+    return m_scene;
 }
 
 } // namespace simple_engine

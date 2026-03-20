@@ -61,7 +61,7 @@ void Engine::run() {
 
         m_application->processEvents(m_running);
         m_application->update(deltaTime);
-        m_renderer->render(*m_window, m_application->getTrianglePosition());
+        m_renderer->render(*m_window, m_application->getScene());
         SDL_Delay(16);
     }
 }

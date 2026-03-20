@@ -1,8 +1,7 @@
 #pragma once
 
-#include <glm/vec2.hpp>
-
 #include "Input.h"
+#include "Scene.h"
 
 namespace simple_engine {
 
@@ -13,11 +12,11 @@ public:
     void processEvents(bool& running);
     void update(float deltaTime);
 
-    const glm::vec2& getTrianglePosition() const;
+    const Scene& getScene() const;
 
 private:
     Input m_input;
-    glm::vec2 m_trianglePosition;
+    Scene m_scene;
     float m_moveSpeed;
 };
 
