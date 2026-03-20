@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Shader.h"
-
 namespace simple_engine {
 
 class Scene;
@@ -17,7 +15,6 @@ public:
     void shutdown();
 
 private:
-    Shader m_shader;
     bool m_initialized;
 };
 

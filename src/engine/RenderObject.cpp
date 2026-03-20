@@ -3,16 +3,14 @@
 namespace simple_engine {
 
 RenderObject::RenderObject()
-    : rotationSpeed(0.0f)
-    , tintColor(1.0f, 1.0f, 1.0f, 1.0f) {
+    : rotationSpeed(0.0f) {
 }
 
-RenderObject::RenderObject(std::shared_ptr<Mesh> meshValue, const Transform& initialTransform, float initialRotationSpeed, const glm::vec4& initialTintColor, std::shared_ptr<Texture> initialTexture)
+RenderObject::RenderObject(std::shared_ptr<Mesh> meshValue, std::shared_ptr<Material> materialValue, const Transform& initialTransform, float initialRotationSpeed)
     : mesh(meshValue)
-    , texture(initialTexture)
+    , material(materialValue)
     , transform(initialTransform)
-    , rotationSpeed(initialRotationSpeed)
-    , tintColor(initialTintColor) {
+    , rotationSpeed(initialRotationSpeed) {
 }
 
 } // namespace simple_engine
