@@ -21,9 +21,7 @@ void Application::processEvents(bool& running) {
 
         m_input.processEvent(event);
     }
-}
 
-void Application::update(float deltaTime) {
     glm::vec2 objectDirection(0.0f, 0.0f);
     glm::vec2 cameraDirection(0.0f, 0.0f);
 
@@ -53,20 +51,12 @@ void Application::update(float deltaTime) {
         cameraDirection.x += 1.0f;
     }
 
-    if (glm::length(objectDirection) > 0.0f) {
-        objectDirection = glm::normalize(objectDirection);
-        RenderObject* playerObject = m_scene.getPrimaryObject();
-        if (playerObject != nullptr) {
-            playerObject->transform.position += objectDirection * (m_moveSpeed * deltaTime);
-        }
-    }
+    m_scene.setObjectInputDirection(objectDirection);
+    m_scene.setCameraInputDirection(cameraDirection);
+}
 
-    if (glm::length(cameraDirection) > 0.0f) {
-        cameraDirection = glm::normalize(cameraDirection);
-        m_scene.getCamera().position += cameraDirection * (m_cameraSpeed * deltaTime);
-    }
-
-    m_scene.update(deltaTime);
+Scene& Application::getScene() {
+    return m_scene;
 }
 
 const Scene& Application::getScene() const {

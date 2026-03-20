@@ -10,8 +10,7 @@ public:
     Application();
 
     void processEvents(bool& running);
-    void update(float deltaTime);
-
+    Scene& getScene();
     const Scene& getScene() const;
 
 private:

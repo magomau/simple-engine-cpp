@@ -1,12 +1,10 @@
 #pragma once
 
-#include <SDL3/SDL_opengl.h>
-
-#include "Scene.h"
 #include "Shader.h"
 
 namespace simple_engine {
 
+class Scene;
 class Window;
 
 class Renderer {
@@ -15,7 +13,7 @@ public:
     ~Renderer();
 
     bool init(Window& window);
-    void render(Window& window, const Scene& scene);
+    void renderScene(Window& window, const Scene& scene);
     void shutdown();
 
 private:

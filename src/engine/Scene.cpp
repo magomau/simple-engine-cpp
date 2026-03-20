@@ -2,11 +2,19 @@
 
 #include <memory>
 
+#include <glm/geometric.hpp>
+
 #include "PrimitiveFactory.h"
+#include "Renderer.h"
+#include "Window.h"
 
 namespace simple_engine {
 
-Scene::Scene() {
+Scene::Scene()
+    : m_objectInputDirection(0.0f, 0.0f)
+    , m_cameraInputDirection(0.0f, 0.0f)
+    , m_objectMoveSpeed(1.5f)
+    , m_cameraMoveSpeed(1.8f) {
     const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
     const std::shared_ptr<Mesh> quadMesh = PrimitiveFactory::createQuad();
 
@@ -32,9 +40,26 @@ Scene::Scene() {
 }
 
 void Scene::update(float deltaTime) {
+    if (glm::length(m_objectInputDirection) > 0.0f) {
+        const glm::vec2 direction = glm::normalize(m_objectInputDirection);
+        RenderObject* playerObject = getPrimaryObject();
+        if (playerObject != nullptr) {
+            playerObject->transform.position += direction * (m_objectMoveSpeed * deltaTime);
+        }
+    }
+
+    if (glm::length(m_cameraInputDirection) > 0.0f) {
+        const glm::vec2 direction = glm::normalize(m_cameraInputDirection);
+        m_camera.position += direction * (m_cameraMoveSpeed * deltaTime);
+    }
+
     for (RenderObject& object : m_objects) {
         object.transform.rotation += object.rotationSpeed * deltaTime;
     }
+}
+
+void Scene::render(Renderer& renderer, Window& window) const {
+    renderer.renderScene(window, *this);
 }
 
 const std::vector<RenderObject>& Scene::getObjects() const {
@@ -55,6 +80,14 @@ const Camera& Scene::getCamera() const {
 
 Camera& Scene::getCamera() {
     return m_camera;
+}
+
+void Scene::setObjectInputDirection(const glm::vec2& direction) {
+    m_objectInputDirection = direction;
+}
+
+void Scene::setCameraInputDirection(const glm::vec2& direction) {
+    m_cameraInputDirection = direction;
 }
 
 } // namespace simple_engine

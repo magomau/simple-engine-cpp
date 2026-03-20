@@ -6,6 +6,8 @@
 #include <glm/mat4x4.hpp>
 
 #include "GLFunctions.h"
+#include "Scene.h"
+#include "Shader.h"
 #include "Window.h"
 #include "core/Logger.h"
 
@@ -69,7 +71,7 @@ bool Renderer::init(Window& window) {
     return true;
 }
 
-void Renderer::render(Window& window, const Scene& scene) {
+void Renderer::renderScene(Window& window, const Scene& scene) {
     int width = 0;
     int height = 0;
     window.getDrawableSize(width, height);
