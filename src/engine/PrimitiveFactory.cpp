@@ -9,14 +9,14 @@
 namespace simple_engine {
 
 std::shared_ptr<Mesh> PrimitiveFactory::createTriangle() {
-    constexpr std::array<float, 9> vertices = {
-         0.0f,  0.6f, 0.0f,
-        -0.6f, -0.45f, 0.0f,
-         0.6f, -0.45f, 0.0f,
+    constexpr std::array<float, 15> vertices = {
+         0.0f,  0.6f, 0.0f,   0.5f, 1.0f,
+        -0.6f, -0.45f, 0.0f,  0.0f, 0.0f,
+         0.6f, -0.45f, 0.0f,  1.0f, 0.0f,
     };
 
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
-    if (!mesh->create(vertices.data(), vertices.size(), 3)) {
+    if (!mesh->create(vertices.data(), vertices.size(), 5, true)) {
         Logger::error("Failed to create triangle primitive.");
         return nullptr;
     }
@@ -25,17 +25,17 @@ std::shared_ptr<Mesh> PrimitiveFactory::createTriangle() {
 }
 
 std::shared_ptr<Mesh> PrimitiveFactory::createQuad() {
-    constexpr std::array<float, 18> vertices = {
-        -0.5f,  0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f,  0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
+    constexpr std::array<float, 30> vertices = {
+        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
+         0.5f,  0.5f, 0.0f,   1.0f, 1.0f,
     };
 
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
-    if (!mesh->create(vertices.data(), vertices.size(), 3)) {
+    if (!mesh->create(vertices.data(), vertices.size(), 5, true)) {
         Logger::error("Failed to create quad primitive.");
         return nullptr;
     }

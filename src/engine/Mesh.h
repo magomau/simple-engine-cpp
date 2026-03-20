@@ -14,7 +14,7 @@ public:
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
 
-    bool create(const float* vertices, std::size_t floatCount, int componentsPerVertex);
+    bool create(const float* vertices, std::size_t floatCount, int componentsPerVertex, bool hasTextureCoordinates);
     void draw() const;
     void destroy();
 

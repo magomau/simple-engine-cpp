@@ -4,6 +4,7 @@
 #include <SDL3/SDL_opengl.h>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 
 #include "GLFunctions.h"
 #include "Scene.h"
@@ -18,22 +19,35 @@ namespace {
 constexpr const char* kVertexShaderSource = R"(
 #version 330 core
 layout (location = 0) in vec3 aPosition;
+layout (location = 1) in vec2 aTexCoord;
 
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+out vec2 vTexCoord;
+
 void main() {
+    vTexCoord = aTexCoord;
     gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
 }
 )";
 
 constexpr const char* kFragmentShaderSource = R"(
 #version 330 core
+in vec2 vTexCoord;
 out vec4 fragmentColor;
 
+uniform vec4 uTintColor;
+uniform int uUseTexture;
+uniform sampler2D uTexture0;
+
 void main() {
-    fragmentColor = vec4(0.95, 0.55, 0.20, 1.0);
+    vec4 color = uTintColor;
+    if (uUseTexture == 1) {
+        color *= texture(uTexture0, vTexCoord);
+    }
+    fragmentColor = color;
 }
 )";
 
@@ -88,6 +102,7 @@ void Renderer::renderScene(Window& window, const Scene& scene) {
         m_shader.bind();
         m_shader.setMatrix4("uView", view);
         m_shader.setMatrix4("uProjection", projection);
+        m_shader.setInt("uTexture0", 0);
 
         for (const RenderObject& object : scene.getObjects()) {
             if (!object.mesh) {
@@ -95,6 +110,16 @@ void Renderer::renderScene(Window& window, const Scene& scene) {
             }
 
             m_shader.setMatrix4("uModel", object.transform.getMatrix());
+            m_shader.setVector4("uTintColor", object.tintColor);
+            m_shader.setInt("uUseTexture", object.texture ? 1 : 0);
+
+            if (object.texture) {
+                object.texture->bind(0);
+            } else {
+                gl::ActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
             object.mesh->draw();
         }
     }

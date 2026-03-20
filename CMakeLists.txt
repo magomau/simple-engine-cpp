@@ -27,10 +27,12 @@ add_executable(SimpleEngine
     src/engine/Camera.cpp
     src/engine/Mesh.cpp
     src/engine/PrimitiveFactory.cpp
+    src/engine/Texture.cpp
     src/core/Logger.cpp
 )
 
 target_include_directories(SimpleEngine PRIVATE src)
+target_compile_definitions(SimpleEngine PRIVATE SIMPLE_ENGINE_ASSET_ROOT="${CMAKE_SOURCE_DIR}/assets")
 
 target_link_libraries(SimpleEngine PRIVATE
     OpenGL::GL

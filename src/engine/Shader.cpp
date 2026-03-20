@@ -9,6 +9,20 @@
 
 namespace simple_engine {
 
+namespace {
+
+GLint getUniformLocation(GLuint program, const char* uniformName) {
+    const GLint location = gl::GetUniformLocation(program, uniformName);
+    if (location < 0) {
+        std::string message = "Uniform not found: ";
+        message += uniformName;
+        Logger::error(message.c_str());
+    }
+    return location;
+}
+
+} // namespace
+
 Shader::Shader()
     : m_program(0) {
 }
@@ -56,15 +70,24 @@ void Shader::destroy() {
 }
 
 void Shader::setMatrix4(const char* uniformName, const glm::mat4& matrix) const {
-    const GLint location = gl::GetUniformLocation(m_program, uniformName);
-    if (location < 0) {
-        std::string message = "Uniform not found: ";
-        message += uniformName;
-        Logger::error(message.c_str());
-        return;
+    const GLint location = getUniformLocation(m_program, uniformName);
+    if (location >= 0) {
+        gl::UniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
+}
 
-    gl::UniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+void Shader::setInt(const char* uniformName, int value) const {
+    const GLint location = getUniformLocation(m_program, uniformName);
+    if (location >= 0) {
+        gl::Uniform1i(location, value);
+    }
+}
+
+void Shader::setVector4(const char* uniformName, const glm::vec4& value) const {
+    const GLint location = getUniformLocation(m_program, uniformName);
+    if (location >= 0) {
+        gl::Uniform4fv(location, 1, glm::value_ptr(value));
+    }
 }
 
 bool Shader::compileShader(GLuint& shader, GLenum shaderType, const char* source) {

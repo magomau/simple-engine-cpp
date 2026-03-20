@@ -15,10 +15,10 @@ Mesh::~Mesh() {
     destroy();
 }
 
-bool Mesh::create(const float* vertices, std::size_t floatCount, int componentsPerVertex) {
+bool Mesh::create(const float* vertices, std::size_t floatCount, int componentsPerVertex, bool hasTextureCoordinates) {
     destroy();
 
-    if (vertices == nullptr || floatCount == 0 || componentsPerVertex <= 0) {
+    if (vertices == nullptr || floatCount == 0 || componentsPerVertex < 3) {
         Logger::error("Mesh creation received invalid vertex data.");
         return false;
     }
@@ -37,8 +37,16 @@ bool Mesh::create(const float* vertices, std::size_t floatCount, int componentsP
     gl::BindVertexArray(m_vertexArrayObject);
     gl::BindBuffer(GL_ARRAY_BUFFER, m_vertexBufferObject);
     gl::BufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(floatCount * sizeof(float)), vertices, GL_STATIC_DRAW);
-    gl::VertexAttribPointer(0, componentsPerVertex, GL_FLOAT, GL_FALSE, componentsPerVertex * static_cast<GLint>(sizeof(float)), nullptr);
+
+    const GLsizei stride = componentsPerVertex * static_cast<GLsizei>(sizeof(float));
+    gl::VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, nullptr);
     gl::EnableVertexAttribArray(0);
+
+    if (hasTextureCoordinates && componentsPerVertex >= 5) {
+        gl::VertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, reinterpret_cast<const void*>(3 * sizeof(float)));
+        gl::EnableVertexAttribArray(1);
+    }
+
     gl::BindBuffer(GL_ARRAY_BUFFER, 0);
     gl::BindVertexArray(0);
 

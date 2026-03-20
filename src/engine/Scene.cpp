@@ -1,11 +1,14 @@
 #include "Scene.h"
 
 #include <memory>
+#include <string>
 
 #include <glm/geometric.hpp>
+#include <glm/vec4.hpp>
 
 #include "PrimitiveFactory.h"
 #include "Renderer.h"
+#include "Texture.h"
 #include "Window.h"
 
 namespace simple_engine {
@@ -18,25 +21,31 @@ Scene::Scene()
     const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
     const std::shared_ptr<Mesh> quadMesh = PrimitiveFactory::createQuad();
 
+    std::shared_ptr<Texture> checkerTexture = std::make_shared<Texture>();
+    const std::string texturePath = std::string(SIMPLE_ENGINE_ASSET_ROOT) + "/checker.ppm";
+    if (!checkerTexture->loadFromFile(texturePath)) {
+        checkerTexture.reset();
+    }
+
     Transform playerTransform;
     playerTransform.position = { 0.0f, 0.0f };
     playerTransform.scale = { 1.0f, 1.0f };
-    m_objects.emplace_back(triangleMesh, playerTransform, 1.0f);
+    m_objects.emplace_back(triangleMesh, playerTransform, 1.0f, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
 
     Transform leftTransform;
     leftTransform.position = { -0.9f, 0.45f };
     leftTransform.scale = { 0.65f, 0.65f };
-    m_objects.emplace_back(triangleMesh, leftTransform, -0.7f);
+    m_objects.emplace_back(triangleMesh, leftTransform, -0.7f, glm::vec4(0.35f, 0.85f, 1.0f, 1.0f));
 
     Transform rightTransform;
     rightTransform.position = { 0.95f, -0.35f };
     rightTransform.scale = { 0.85f, 1.1f };
-    m_objects.emplace_back(quadMesh, rightTransform, 0.45f);
+    m_objects.emplace_back(quadMesh, rightTransform, 0.45f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), checkerTexture);
 
     Transform topTransform;
     topTransform.position = { 0.35f, 0.8f };
     topTransform.scale = { 0.55f, 0.55f };
-    m_objects.emplace_back(quadMesh, topTransform, -0.3f);
+    m_objects.emplace_back(quadMesh, topTransform, -0.3f, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
 }
 
 void Scene::update(float deltaTime) {
