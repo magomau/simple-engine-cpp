@@ -55,13 +55,13 @@ void Renderer::renderScene(Window& window, const Scene& scene) {
         const glm::mat4 view = scene.getCamera().getViewMatrix();
         const glm::mat4 projection = scene.getCamera().getProjectionMatrix(aspectRatio);
 
-        for (const RenderObject& object : scene.getObjects()) {
-            if (!object.mesh || !object.material || !object.material->isValid()) {
+        for (const std::shared_ptr<RenderObject>& object : scene.getObjects()) {
+            if (!object || !object->mesh || !object->material || !object->material->isValid()) {
                 continue;
             }
 
-            object.material->apply(object.transform.getMatrix(), view, projection);
-            object.mesh->draw();
+            object->material->apply(object->transform.getMatrix(), view, projection);
+            object->mesh->draw();
         }
     }
 

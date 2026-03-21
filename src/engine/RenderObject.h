@@ -12,6 +12,7 @@ class RenderObject {
 public:
     RenderObject();
     RenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed);
+    virtual ~RenderObject() = default;
 
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Material> material;

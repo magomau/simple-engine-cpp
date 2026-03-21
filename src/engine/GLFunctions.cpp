@@ -22,6 +22,7 @@ PFNGLDELETEPROGRAMPROC DeleteProgram = nullptr;
 PFNGLGETUNIFORMLOCATIONPROC GetUniformLocation = nullptr;
 PFNGLUNIFORMMATRIX4FVPROC UniformMatrix4fv = nullptr;
 PFNGLUNIFORM1IPROC Uniform1i = nullptr;
+PFNGLUNIFORM2FVPROC Uniform2fv = nullptr;
 PFNGLUNIFORM4FVPROC Uniform4fv = nullptr;
 PFNGLACTIVETEXTUREPROC ActiveTexture = nullptr;
 PFNGLGENVERTEXARRAYSPROC GenVertexArrays = nullptr;
@@ -67,6 +68,7 @@ bool loadOpenGLFunctions() {
     success = loadFunction(GetUniformLocation, "glGetUniformLocation") && success;
     success = loadFunction(UniformMatrix4fv, "glUniformMatrix4fv") && success;
     success = loadFunction(Uniform1i, "glUniform1i") && success;
+    success = loadFunction(Uniform2fv, "glUniform2fv") && success;
     success = loadFunction(Uniform4fv, "glUniform4fv") && success;
     success = loadFunction(ActiveTexture, "glActiveTexture") && success;
     success = loadFunction(GenVertexArrays, "glGenVertexArrays") && success;

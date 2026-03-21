@@ -14,11 +14,13 @@ layout (location = 1) in vec2 aTexCoord;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform vec2 uUVOffset;
+uniform vec2 uUVScale;
 
 out vec2 vTexCoord;
 
 void main() {
-    vTexCoord = aTexCoord;
+    vTexCoord = (aTexCoord * uUVScale) + uUVOffset;
     gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
 }
 )";
@@ -44,13 +46,17 @@ void main() {
 } // namespace
 
 Material::Material()
-    : baseColor(1.0f, 1.0f, 1.0f, 1.0f) {
+    : baseColor(1.0f, 1.0f, 1.0f, 1.0f)
+    , uvOffset(0.0f, 0.0f)
+    , uvScale(1.0f, 1.0f) {
 }
 
 Material::Material(std::shared_ptr<Shader> shaderValue, const glm::vec4& baseColorValue, std::shared_ptr<Texture> textureValue)
     : shader(shaderValue)
     , texture(textureValue)
-    , baseColor(baseColorValue) {
+    , baseColor(baseColorValue)
+    , uvOffset(0.0f, 0.0f)
+    , uvScale(1.0f, 1.0f) {
 }
 
 void Material::apply(const glm::mat4& model, const glm::mat4& view, const glm::mat4& projection) const {
@@ -62,6 +68,8 @@ void Material::apply(const glm::mat4& model, const glm::mat4& view, const glm::m
     shader->setMatrix4("uModel", model);
     shader->setMatrix4("uView", view);
     shader->setMatrix4("uProjection", projection);
+    shader->setVector2("uUVOffset", uvOffset);
+    shader->setVector2("uUVScale", uvScale);
     shader->setVector4("uBaseColor", baseColor);
     shader->setInt("uTexture0", 0);
     shader->setInt("uUseTexture", texture ? 1 : 0);
@@ -73,6 +81,16 @@ void Material::apply(const glm::mat4& model, const glm::mat4& view, const glm::m
 
 bool Material::isValid() const {
     return shader != nullptr;
+}
+
+void Material::setTextureRegion(const glm::vec2& minUV, const glm::vec2& maxUV) {
+    uvOffset = minUV;
+    uvScale = maxUV - minUV;
+}
+
+void Material::resetTextureRegion() {
+    uvOffset = glm::vec2(0.0f, 0.0f);
+    uvScale = glm::vec2(1.0f, 1.0f);
 }
 
 std::shared_ptr<Shader> Material::createDefaultShader() {

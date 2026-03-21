@@ -83,6 +83,13 @@ void Shader::setInt(const char* uniformName, int value) const {
     }
 }
 
+void Shader::setVector2(const char* uniformName, const glm::vec2& value) const {
+    const GLint location = getUniformLocation(m_program, uniformName);
+    if (location >= 0) {
+        gl::Uniform2fv(location, 1, glm::value_ptr(value));
+    }
+}
+
 void Shader::setVector4(const char* uniformName, const glm::vec4& value) const {
     const GLint location = getUniformLocation(m_program, uniformName);
     if (location >= 0) {

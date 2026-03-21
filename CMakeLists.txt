@@ -23,6 +23,7 @@ add_executable(SimpleEngine
     src/engine/GLFunctions.cpp
     src/engine/Transform.cpp
     src/engine/RenderObject.cpp
+    src/engine/Sprite.cpp
     src/engine/Scene.cpp
     src/engine/Camera.cpp
     src/engine/Mesh.cpp
