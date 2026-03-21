@@ -13,4 +13,8 @@ RenderObject::RenderObject(std::shared_ptr<Mesh> meshValue, std::shared_ptr<Mate
     , rotationSpeed(initialRotationSpeed) {
 }
 
+void RenderObject::update(float deltaTime) {
+    transform.rotation += rotationSpeed * deltaTime;
+}
+
 } // namespace simple_engine

@@ -73,7 +73,7 @@ void Scene::update(float deltaTime) {
             continue;
         }
 
-        object->transform.rotation += object->rotationSpeed * deltaTime;
+        object->update(deltaTime);
     }
 }
 

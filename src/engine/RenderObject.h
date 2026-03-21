@@ -14,6 +14,8 @@ public:
     RenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed);
     virtual ~RenderObject() = default;
 
+    virtual void update(float deltaTime);
+
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Material> material;
     Transform transform;
