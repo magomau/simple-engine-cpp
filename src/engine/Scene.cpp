@@ -2,118 +2,21 @@
 
 #include <algorithm>
 #include <memory>
-#include <string>
-
-#include <glm/geometric.hpp>
-#include <glm/vec4.hpp>
 
 #include "Material.h"
-#include "ParallaxLayer.h"
-#include "PrimitiveFactory.h"
 #include "Renderer.h"
 #include "Sprite.h"
 #include "Tilemap.h"
-#include "Texture.h"
-#include "UIElement.h"
 #include "Window.h"
+#include "core/Logger.h"
 
 namespace simple_engine {
 
-Scene::Scene()
-    : m_cameraInputDirection(0.0f, 0.0f)
-    , m_cameraMoveSpeed(1.8f)
-    , m_cameraFollowOffset(0.0f, 0.0f) {
-    const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
-    m_defaultShader = Material::createDefaultShader();
-
-    std::shared_ptr<Texture> checkerTexture = std::make_shared<Texture>();
-    const std::string texturePath = std::string(SIMPLE_ENGINE_ASSET_ROOT) + "/checker.ppm";
-    if (!checkerTexture->loadFromFile(texturePath)) {
-        checkerTexture.reset();
-    }
-
-    ParallaxLayer skyLayer(checkerTexture, glm::vec2(0.0f, 2.2f), glm::vec2(8.5f, 3.5f), 0.10f, glm::vec4(0.70f, 0.82f, 1.00f, 1.0f), -30);
-    addParallaxLayer(skyLayer);
-
-    ParallaxLayer mountainLayer(checkerTexture, glm::vec2(0.0f, 1.2f), glm::vec2(7.0f, 2.4f), 0.35f, glm::vec4(0.55f, 0.68f, 0.86f, 1.0f), -20);
-    addParallaxLayer(mountainLayer);
-
-    ParallaxLayer nearBackgroundLayer(checkerTexture, glm::vec2(0.0f, 0.2f), glm::vec2(6.0f, 1.8f), 0.60f, glm::vec4(0.42f, 0.52f, 0.68f, 1.0f), -10);
-    addParallaxLayer(nearBackgroundLayer);
-
-    UIElement healthPanel(checkerTexture, glm::vec2(20.0f, 20.0f), glm::vec2(180.0f, 28.0f), UIAnchor::TopLeft, glm::vec4(0.18f, 0.22f, 0.30f, 0.95f), 1000);
-    addUIElement(healthPanel);
-
-    UIElement healthFill(checkerTexture, glm::vec2(24.0f, 24.0f), glm::vec2(120.0f, 20.0f), UIAnchor::TopLeft, glm::vec4(0.92f, 0.28f, 0.24f, 0.95f), 1001);
-    addUIElement(healthFill);
-
-    UIElement hudIcon(checkerTexture, glm::vec2(20.0f, 56.0f), glm::vec2(32.0f, 32.0f), UIAnchor::TopLeft, glm::vec4(1.0f), 1002);
-    addUIElement(hudIcon);
-
-    const std::shared_ptr<Material> orangeMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
-    const std::shared_ptr<Material> blueMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.35f, 0.85f, 1.0f, 1.0f));
-    const std::shared_ptr<Material> greenMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
-
-    Transform playerTransform;
-    playerTransform.position = { 0.0f, 1.5f };
-    playerTransform.scale = { 1.0f, 1.0f };
-    createRenderObject(triangleMesh, orangeMaterial, playerTransform, 1.0f);
-
-    Transform leftTransform;
-    leftTransform.position = { -0.9f, 0.45f };
-    leftTransform.scale = { 0.65f, 0.65f };
-    createRenderObject(triangleMesh, blueMaterial, leftTransform, -0.7f);
-
-    Transform spriteTransform;
-    spriteTransform.position = { 0.95f, -0.35f };
-    spriteTransform.scale = { 0.85f, 1.1f };
-    createSprite(checkerTexture, spriteTransform, glm::vec4(1.0f), 0.45f);
-
-    Transform topTransform;
-    topTransform.position = { 0.35f, 0.8f };
-    topTransform.scale = { 0.55f, 0.55f };
-    createRenderObject(Sprite::getSharedQuadMesh(), greenMaterial, topTransform, -0.3f);
-
-    TextureAtlas tileAtlas(checkerTexture, 2, 2);
-    Tilemap collisionTilemap(tileAtlas, 8, 6, glm::vec2(0.5f, 0.5f), glm::vec2(-2.0f, 2.0f));
-    collisionTilemap.setRenderLayer(0);
-
-    for (int x = 0; x < collisionTilemap.getWidth(); ++x) {
-        collisionTilemap.setTile(x, collisionTilemap.getHeight() - 1, x % 4);
-        collisionTilemap.setTileSolid(x, collisionTilemap.getHeight() - 1, true);
-    }
-
-    for (int y = 2; y < collisionTilemap.getHeight(); ++y) {
-        collisionTilemap.setTile(0, y, 1);
-        collisionTilemap.setTileSolid(0, y, true);
-    }
-
-    collisionTilemap.setTile(3, 4, 2);
-    collisionTilemap.setTileSolid(3, 4, true);
-    collisionTilemap.setTile(4, 4, 3);
-    collisionTilemap.setTileSolid(4, 4, true);
-    collisionTilemap.setTile(5, 3, 0);
-    collisionTilemap.setTileSolid(5, 3, true);
-
-    Tilemap& worldTilemap = addTilemap(collisionTilemap);
-    m_camera.setDeadZone(glm::vec2(0.75f, 0.45f));
-    const AABB worldBounds = worldTilemap.getWorldBounds();
-    m_camera.setBounds(worldBounds.min, worldBounds.max);
+Scene::Scene() {
+    Logger::info("Scene created without GPU resources. Default shader will be created lazily.");
 }
 
 void Scene::update(float deltaTime) {
-    if (glm::length(m_cameraInputDirection) > 0.0f) {
-        const glm::vec2 direction = glm::normalize(m_cameraInputDirection);
-        m_cameraFollowOffset += direction * (m_cameraMoveSpeed * deltaTime);
-    }
-
-    RenderObject* primaryObject = getPrimaryObject();
-    if (primaryObject != nullptr) {
-        m_camera.setFollowTarget(primaryObject->transform.position + m_cameraFollowOffset);
-    } else {
-        m_camera.clearFollowTarget();
-    }
-
     m_camera.update(deltaTime);
 
     for (const std::shared_ptr<ParallaxLayer>& layer : m_parallaxLayers) {
@@ -177,11 +80,7 @@ RenderObject& Scene::createRenderObject(std::shared_ptr<Mesh> mesh, std::shared_
 }
 
 Sprite& Scene::createSprite(std::shared_ptr<Texture> texture, const Transform& initialTransform, const glm::vec4& tint, float initialRotationSpeed) {
-    if (!m_defaultShader) {
-        m_defaultShader = Material::createDefaultShader();
-    }
-
-    std::shared_ptr<Sprite> sprite = Sprite::create(m_defaultShader, std::move(texture), initialTransform, tint);
+    std::shared_ptr<Sprite> sprite = Sprite::create(ensureDefaultShader(), std::move(texture), initialTransform, tint);
     if (!sprite) {
         sprite = std::make_shared<Sprite>(Sprite::getSharedQuadMesh(), std::make_shared<Material>(), initialTransform);
     }
@@ -194,7 +93,7 @@ Sprite& Scene::createSprite(std::shared_ptr<Texture> texture, const Transform& i
 
 ParallaxLayer& Scene::addParallaxLayer(const ParallaxLayer& layer) {
     std::shared_ptr<ParallaxLayer> layerInstance = std::make_shared<ParallaxLayer>(layer);
-    layerInstance->initialize(m_defaultShader);
+    layerInstance->initialize(ensureDefaultShader());
     if (layerInstance->getSprite()) {
         layerInstance->update(m_camera.position);
     }
@@ -205,19 +104,14 @@ ParallaxLayer& Scene::addParallaxLayer(const ParallaxLayer& layer) {
 
 UIElement& Scene::addUIElement(const UIElement& element) {
     std::shared_ptr<UIElement> elementInstance = std::make_shared<UIElement>(element);
-    elementInstance->initialize(m_defaultShader);
+    elementInstance->initialize(ensureDefaultShader());
     m_uiElements.push_back(elementInstance);
     rebuildUIRenderObjects();
     return *elementInstance;
 }
 
-bool Scene::movePrimaryObject(const glm::vec2& displacement, float collisionScale) {
-    RenderObject* primaryObject = getPrimaryObject();
-    if (primaryObject == nullptr) {
-        return false;
-    }
-
-    return moveObjectWithTileCollisions(*primaryObject, displacement, collisionScale);
+bool Scene::moveObject(RenderObject& object, const glm::vec2& displacement, float collisionScale) {
+    return moveObjectWithTileCollisions(object, displacement, collisionScale);
 }
 
 const std::vector<std::shared_ptr<RenderObject>>& Scene::getObjects() const {
@@ -228,14 +122,6 @@ const std::vector<std::shared_ptr<RenderObject>>& Scene::getUIObjects() const {
     return m_uiRenderObjects;
 }
 
-RenderObject* Scene::getPrimaryObject() {
-    if (m_objects.empty()) {
-        return nullptr;
-    }
-
-    return m_objects.front().get();
-}
-
 const Camera& Scene::getCamera() const {
     return m_camera;
 }
@@ -244,17 +130,26 @@ Camera& Scene::getCamera() {
     return m_camera;
 }
 
-void Scene::setCameraInputDirection(const glm::vec2& direction) {
-    m_cameraInputDirection = direction;
+std::shared_ptr<Shader> Scene::getDefaultShader() {
+    return ensureDefaultShader();
 }
 
 Tilemap& Scene::addTilemap(const Tilemap& tilemap) {
     std::shared_ptr<Tilemap> tilemapInstance = std::make_shared<Tilemap>(tilemap);
-    tilemapInstance->initialize(m_defaultShader);
+    tilemapInstance->initialize(ensureDefaultShader());
     tilemapInstance->clearDirty();
     m_tilemaps.push_back(tilemapInstance);
     rebuildRenderObjects();
     return *tilemapInstance;
+}
+
+std::shared_ptr<Shader> Scene::ensureDefaultShader() {
+    if (!m_defaultShader) {
+        Logger::info("Creating default scene shader after OpenGL initialization.");
+        m_defaultShader = Material::createDefaultShader();
+    }
+
+    return m_defaultShader;
 }
 
 void Scene::rebuildRenderObjects() {

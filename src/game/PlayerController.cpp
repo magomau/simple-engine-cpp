@@ -5,24 +5,25 @@
 
 #include <SDL3/SDL_scancode.h>
 
-#include "Input.h"
-#include "Scene.h"
+#include "engine/Input.h"
+#include "engine/RenderObject.h"
+#include "engine/Scene.h"
 
-namespace simple_engine {
+namespace simple_game {
 
 PlayerController::PlayerController()
     : m_moveSpeed(1.5f)
     , m_collisionScale(0.8f) {
 }
 
-void PlayerController::update(const Input& input, Scene& scene, float deltaTime) {
+void PlayerController::update(const simple_engine::Input& input, simple_engine::Scene& scene, simple_engine::RenderObject& player, float deltaTime) {
     const glm::vec2 inputDirection = getInputDirection(input);
     if (glm::length(inputDirection) <= 0.0f) {
         return;
     }
 
     const glm::vec2 direction = glm::normalize(inputDirection);
-    scene.movePrimaryObject(direction * (m_moveSpeed * deltaTime), m_collisionScale);
+    scene.moveObject(player, direction * (m_moveSpeed * deltaTime), m_collisionScale);
 }
 
 void PlayerController::setMoveSpeed(float moveSpeed) {
@@ -41,7 +42,7 @@ float PlayerController::getCollisionScale() const {
     return m_collisionScale;
 }
 
-glm::vec2 PlayerController::getInputDirection(const Input& input) const {
+glm::vec2 PlayerController::getInputDirection(const simple_engine::Input& input) const {
     glm::vec2 direction(0.0f, 0.0f);
 
     if (input.isKeyPressed(SDL_SCANCODE_W)) {
@@ -60,4 +61,4 @@ glm::vec2 PlayerController::getInputDirection(const Input& input) const {
     return direction;
 }
 
-} // namespace simple_engine
+} // namespace simple_game

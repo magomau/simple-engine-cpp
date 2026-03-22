@@ -29,6 +29,7 @@ bool Window::create(const char* title, int width, int height) {
         Logger::error(SDL_GetError());
         return false;
     }
+    Logger::info("SDL window created.");
 
     m_glContext = SDL_GL_CreateContext(m_window);
     if (!m_glContext) {
@@ -36,12 +37,14 @@ bool Window::create(const char* title, int width, int height) {
         destroy();
         return false;
     }
+    Logger::info("OpenGL context created.");
 
     if (!SDL_GL_MakeCurrent(m_window, m_glContext)) {
         Logger::error(SDL_GetError());
         destroy();
         return false;
     }
+    Logger::info("OpenGL context made current.");
 
     if (!SDL_GL_SetSwapInterval(1)) {
         Logger::error(SDL_GetError());

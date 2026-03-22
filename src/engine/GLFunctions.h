@@ -35,5 +35,6 @@ extern PFNGLVERTEXATTRIBPOINTERPROC VertexAttribPointer;
 extern PFNGLENABLEVERTEXATTRIBARRAYPROC EnableVertexAttribArray;
 
 bool loadOpenGLFunctions();
+bool isOpenGLLoaded();
 
 } // namespace simple_engine::gl

@@ -27,8 +27,9 @@ class Window;
 class Scene {
 public:
     Scene();
+    virtual ~Scene() = default;
 
-    void update(float deltaTime);
+    virtual void update(float deltaTime);
     void render(Renderer& renderer, Window& window);
 
     RenderObject& createRenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed = 0.0f);
@@ -36,17 +37,17 @@ public:
     Tilemap& addTilemap(const Tilemap& tilemap);
     ParallaxLayer& addParallaxLayer(const ParallaxLayer& layer);
     UIElement& addUIElement(const UIElement& element);
-    bool movePrimaryObject(const glm::vec2& displacement, float collisionScale = 0.8f);
+    bool moveObject(RenderObject& object, const glm::vec2& displacement, float collisionScale = 0.8f);
     void updateUILayout(int viewportWidth, int viewportHeight);
 
     const std::vector<std::shared_ptr<RenderObject>>& getObjects() const;
     const std::vector<std::shared_ptr<RenderObject>>& getUIObjects() const;
-    RenderObject* getPrimaryObject();
     const Camera& getCamera() const;
     Camera& getCamera();
-    void setCameraInputDirection(const glm::vec2& direction);
+    std::shared_ptr<Shader> getDefaultShader();
 
 private:
+    std::shared_ptr<Shader> ensureDefaultShader();
     bool moveObjectWithTileCollisions(RenderObject& object, const glm::vec2& displacement, float collisionScale);
     bool collidesWithSolidTiles(const AABB& bounds) const;
     glm::vec2 getObjectHalfSize(const RenderObject& object, float collisionScale) const;
@@ -61,9 +62,6 @@ private:
     std::vector<std::shared_ptr<RenderObject>> m_uiRenderObjects;
     std::shared_ptr<Shader> m_defaultShader;
     Camera m_camera;
-    glm::vec2 m_cameraInputDirection;
-    float m_cameraMoveSpeed;
-    glm::vec2 m_cameraFollowOffset;
 };
 
 } // namespace simple_engine

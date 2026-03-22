@@ -86,8 +86,13 @@ bool loadOpenGLFunctions() {
         return false;
     }
 
+    Logger::info("Verified OpenGL entry points, including glCreateShader.");
     Logger::info("OpenGL functions loaded successfully.");
     return true;
+}
+
+bool isOpenGLLoaded() {
+    return CreateShader != nullptr;
 }
 
 } // namespace simple_engine::gl

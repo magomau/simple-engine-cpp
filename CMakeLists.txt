@@ -16,14 +16,13 @@ add_executable(SimpleEngine
     src/main.cpp
     src/engine/Engine.cpp
     src/engine/Window.cpp
-    src/engine/Application.cpp
     src/engine/Input.cpp
+    src/engine/IGame.cpp
     src/engine/Renderer.cpp
     src/engine/Shader.cpp
     src/engine/GLFunctions.cpp
     src/engine/Collision.cpp
     src/engine/Transform.cpp
-    src/engine/PlayerController.cpp
     src/engine/RenderObject.cpp
     src/engine/ParallaxLayer.cpp
     src/engine/Sprite.cpp
@@ -37,6 +36,9 @@ add_executable(SimpleEngine
     src/engine/Texture.cpp
     src/engine/TextureAtlas.cpp
     src/engine/Material.cpp
+    src/game/Game.cpp
+    src/game/GameScene.cpp
+    src/game/PlayerController.cpp
     src/core/Logger.cpp
 )
 
