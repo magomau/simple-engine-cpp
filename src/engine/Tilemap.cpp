@@ -23,6 +23,7 @@ Tilemap::Tilemap(const TextureAtlas& atlas, int width, int height, const glm::ve
     , m_height(std::max(height, 0))
     , m_dirty(false) {
     m_tiles.resize(static_cast<std::size_t>(m_width * m_height), -1);
+    m_solidTiles.resize(static_cast<std::size_t>(m_width * m_height), false);
 }
 
 void Tilemap::initialize(std::shared_ptr<Shader> shader) {
@@ -49,12 +50,63 @@ void Tilemap::setTiles(const std::vector<int>& tiles) {
     rebuildSprites();
 }
 
+void Tilemap::setTileSolid(int x, int y, bool solid) {
+    if (!isCoordinateValid(x, y)) {
+        return;
+    }
+
+    m_solidTiles[static_cast<std::size_t>(getTileIndex(x, y))] = solid;
+}
+
 int Tilemap::getTile(int x, int y) const {
     if (!isCoordinateValid(x, y)) {
         return -1;
     }
 
     return m_tiles[static_cast<std::size_t>(getTileIndex(x, y))];
+}
+
+bool Tilemap::isTileSolid(int x, int y) const {
+    if (!isCoordinateValid(x, y)) {
+        return false;
+    }
+
+    return m_solidTiles[static_cast<std::size_t>(getTileIndex(x, y))];
+}
+
+bool Tilemap::blocksCell(int x, int y) const {
+    return getTile(x, y) >= 0 && isTileSolid(x, y);
+}
+
+bool Tilemap::collidesWithAABB(const AABB& bounds) const {
+    if (m_tileSize.x <= 0.0f || m_tileSize.y <= 0.0f || m_width <= 0 || m_height <= 0) {
+        return false;
+    }
+
+    const int startX = std::max(0, static_cast<int>((bounds.min.x - m_position.x) / m_tileSize.x));
+    const int endX = std::min(m_width - 1, static_cast<int>((bounds.max.x - m_position.x) / m_tileSize.x));
+    const int startY = std::max(0, static_cast<int>((m_position.y - bounds.max.y) / m_tileSize.y));
+    const int endY = std::min(m_height - 1, static_cast<int>((m_position.y - bounds.min.y) / m_tileSize.y));
+
+    for (int y = startY; y <= endY; ++y) {
+        for (int x = startX; x <= endX; ++x) {
+            if (!blocksCell(x, y)) {
+                continue;
+            }
+
+            const float tileMinX = m_position.x + (static_cast<float>(x) * m_tileSize.x);
+            const float tileMaxX = tileMinX + m_tileSize.x;
+            const float tileMaxY = m_position.y - (static_cast<float>(y) * m_tileSize.y);
+            const float tileMinY = tileMaxY - m_tileSize.y;
+            const AABB tileBounds(glm::vec2(tileMinX, tileMinY), glm::vec2(tileMaxX, tileMaxY));
+
+            if (bounds.intersects(tileBounds)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void Tilemap::setPosition(const glm::vec2& position) {

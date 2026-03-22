@@ -21,6 +21,7 @@ add_executable(SimpleEngine
     src/engine/Renderer.cpp
     src/engine/Shader.cpp
     src/engine/GLFunctions.cpp
+    src/engine/Collision.cpp
     src/engine/Transform.cpp
     src/engine/RenderObject.cpp
     src/engine/Sprite.cpp

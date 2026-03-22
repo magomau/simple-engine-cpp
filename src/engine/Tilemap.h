@@ -5,6 +5,7 @@
 
 #include <glm/vec2.hpp>
 
+#include "Collision.h"
 #include "Sprite.h"
 #include "TextureAtlas.h"
 
@@ -20,7 +21,11 @@ public:
     void initialize(std::shared_ptr<Shader> shader);
     void setTile(int x, int y, int atlasIndex);
     void setTiles(const std::vector<int>& tiles);
+    void setTileSolid(int x, int y, bool solid);
     int getTile(int x, int y) const;
+    bool isTileSolid(int x, int y) const;
+    bool blocksCell(int x, int y) const;
+    bool collidesWithAABB(const AABB& bounds) const;
 
     void setPosition(const glm::vec2& position);
     void setTileSize(const glm::vec2& tileSize);
@@ -42,6 +47,7 @@ private:
     TextureAtlas m_atlas;
     std::shared_ptr<Shader> m_shader;
     std::vector<int> m_tiles;
+    std::vector<bool> m_solidTiles;
     std::vector<std::shared_ptr<Sprite>> m_sprites;
     glm::vec2 m_position;
     glm::vec2 m_tileSize;

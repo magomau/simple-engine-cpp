@@ -7,6 +7,7 @@
 #include <glm/vec4.hpp>
 
 #include "Camera.h"
+#include "Collision.h"
 #include "Material.h"
 #include "RenderObject.h"
 
@@ -38,6 +39,8 @@ public:
     void setCameraInputDirection(const glm::vec2& direction);
 
 private:
+    bool collidesWithSolidTiles(const AABB& bounds) const;
+    glm::vec2 getPrimaryObjectHalfSize(const RenderObject& object) const;
     void rebuildRenderObjects();
 
     std::vector<std::shared_ptr<RenderObject>> m_objects;
@@ -49,6 +52,7 @@ private:
     glm::vec2 m_cameraInputDirection;
     float m_objectMoveSpeed;
     float m_cameraMoveSpeed;
+    float m_primaryCollisionScale;
 };
 
 } // namespace simple_engine

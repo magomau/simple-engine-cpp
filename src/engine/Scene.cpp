@@ -20,7 +20,8 @@ Scene::Scene()
     : m_objectInputDirection(0.0f, 0.0f)
     , m_cameraInputDirection(0.0f, 0.0f)
     , m_objectMoveSpeed(1.5f)
-    , m_cameraMoveSpeed(1.8f) {
+    , m_cameraMoveSpeed(1.8f)
+    , m_primaryCollisionScale(0.8f) {
     const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
     m_defaultShader = Material::createDefaultShader();
 
@@ -35,7 +36,7 @@ Scene::Scene()
     const std::shared_ptr<Material> greenMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.45f, 1.0f, 0.55f, 1.0f));
 
     Transform playerTransform;
-    playerTransform.position = { 0.0f, 0.0f };
+    playerTransform.position = { 0.0f, 1.5f };
     playerTransform.scale = { 1.0f, 1.0f };
     createRenderObject(triangleMesh, orangeMaterial, playerTransform, 1.0f);
 
@@ -53,6 +54,28 @@ Scene::Scene()
     topTransform.position = { 0.35f, 0.8f };
     topTransform.scale = { 0.55f, 0.55f };
     createRenderObject(Sprite::getSharedQuadMesh(), greenMaterial, topTransform, -0.3f);
+
+    TextureAtlas tileAtlas(checkerTexture, 2, 2);
+    Tilemap collisionTilemap(tileAtlas, 8, 6, glm::vec2(0.5f, 0.5f), glm::vec2(-2.0f, 2.0f));
+
+    for (int x = 0; x < collisionTilemap.getWidth(); ++x) {
+        collisionTilemap.setTile(x, collisionTilemap.getHeight() - 1, x % 4);
+        collisionTilemap.setTileSolid(x, collisionTilemap.getHeight() - 1, true);
+    }
+
+    for (int y = 2; y < collisionTilemap.getHeight(); ++y) {
+        collisionTilemap.setTile(0, y, 1);
+        collisionTilemap.setTileSolid(0, y, true);
+    }
+
+    collisionTilemap.setTile(3, 4, 2);
+    collisionTilemap.setTileSolid(3, 4, true);
+    collisionTilemap.setTile(4, 4, 3);
+    collisionTilemap.setTileSolid(4, 4, true);
+    collisionTilemap.setTile(5, 3, 0);
+    collisionTilemap.setTileSolid(5, 3, true);
+
+    addTilemap(collisionTilemap);
 }
 
 void Scene::update(float deltaTime) {
@@ -60,7 +83,25 @@ void Scene::update(float deltaTime) {
         const glm::vec2 direction = glm::normalize(m_objectInputDirection);
         RenderObject* playerObject = getPrimaryObject();
         if (playerObject != nullptr) {
-            playerObject->transform.position += direction * (m_objectMoveSpeed * deltaTime);
+            const glm::vec2 displacement = direction * (m_objectMoveSpeed * deltaTime);
+            const glm::vec2 halfSize = getPrimaryObjectHalfSize(*playerObject);
+            glm::vec2 nextPosition = playerObject->transform.position;
+
+            if (displacement.x != 0.0f) {
+                const glm::vec2 candidate(nextPosition.x + displacement.x, nextPosition.y);
+                if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
+                    nextPosition.x = candidate.x;
+                }
+            }
+
+            if (displacement.y != 0.0f) {
+                const glm::vec2 candidate(nextPosition.x, nextPosition.y + displacement.y);
+                if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
+                    nextPosition.y = candidate.y;
+                }
+            }
+
+            playerObject->transform.position = nextPosition;
         }
     }
 
@@ -178,6 +219,24 @@ void Scene::rebuildRenderObjects() {
             m_renderObjects.push_back(sprite);
         }
     }
+}
+
+bool Scene::collidesWithSolidTiles(const AABB& bounds) const {
+    for (const std::shared_ptr<Tilemap>& tilemap : m_tilemaps) {
+        if (!tilemap) {
+            continue;
+        }
+
+        if (tilemap->collidesWithAABB(bounds)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+glm::vec2 Scene::getPrimaryObjectHalfSize(const RenderObject& object) const {
+    return object.transform.scale * (0.5f * m_primaryCollisionScale);
 }
 
 } // namespace simple_engine
