@@ -30,17 +30,18 @@ public:
     RenderObject& createRenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed = 0.0f);
     Sprite& createSprite(std::shared_ptr<Texture> texture, const Transform& initialTransform, const glm::vec4& tint = glm::vec4(1.0f), float initialRotationSpeed = 0.0f);
     Tilemap& addTilemap(const Tilemap& tilemap);
+    bool movePrimaryObject(const glm::vec2& displacement, float collisionScale = 0.8f);
 
     const std::vector<std::shared_ptr<RenderObject>>& getObjects() const;
     RenderObject* getPrimaryObject();
     const Camera& getCamera() const;
     Camera& getCamera();
-    void setObjectInputDirection(const glm::vec2& direction);
     void setCameraInputDirection(const glm::vec2& direction);
 
 private:
+    bool moveObjectWithTileCollisions(RenderObject& object, const glm::vec2& displacement, float collisionScale);
     bool collidesWithSolidTiles(const AABB& bounds) const;
-    glm::vec2 getPrimaryObjectHalfSize(const RenderObject& object) const;
+    glm::vec2 getObjectHalfSize(const RenderObject& object, float collisionScale) const;
     void rebuildRenderObjects();
 
     std::vector<std::shared_ptr<RenderObject>> m_objects;
@@ -48,11 +49,8 @@ private:
     std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
     std::shared_ptr<Shader> m_defaultShader;
     Camera m_camera;
-    glm::vec2 m_objectInputDirection;
     glm::vec2 m_cameraInputDirection;
-    float m_objectMoveSpeed;
     float m_cameraMoveSpeed;
-    float m_primaryCollisionScale;
 };
 
 } // namespace simple_engine

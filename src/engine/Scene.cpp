@@ -17,11 +17,8 @@
 namespace simple_engine {
 
 Scene::Scene()
-    : m_objectInputDirection(0.0f, 0.0f)
-    , m_cameraInputDirection(0.0f, 0.0f)
-    , m_objectMoveSpeed(1.5f)
-    , m_cameraMoveSpeed(1.8f)
-    , m_primaryCollisionScale(0.8f) {
+    : m_cameraInputDirection(0.0f, 0.0f)
+    , m_cameraMoveSpeed(1.8f) {
     const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
     m_defaultShader = Material::createDefaultShader();
 
@@ -79,32 +76,6 @@ Scene::Scene()
 }
 
 void Scene::update(float deltaTime) {
-    if (glm::length(m_objectInputDirection) > 0.0f) {
-        const glm::vec2 direction = glm::normalize(m_objectInputDirection);
-        RenderObject* playerObject = getPrimaryObject();
-        if (playerObject != nullptr) {
-            const glm::vec2 displacement = direction * (m_objectMoveSpeed * deltaTime);
-            const glm::vec2 halfSize = getPrimaryObjectHalfSize(*playerObject);
-            glm::vec2 nextPosition = playerObject->transform.position;
-
-            if (displacement.x != 0.0f) {
-                const glm::vec2 candidate(nextPosition.x + displacement.x, nextPosition.y);
-                if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
-                    nextPosition.x = candidate.x;
-                }
-            }
-
-            if (displacement.y != 0.0f) {
-                const glm::vec2 candidate(nextPosition.x, nextPosition.y + displacement.y);
-                if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
-                    nextPosition.y = candidate.y;
-                }
-            }
-
-            playerObject->transform.position = nextPosition;
-        }
-    }
-
     if (glm::length(m_cameraInputDirection) > 0.0f) {
         const glm::vec2 direction = glm::normalize(m_cameraInputDirection);
         m_camera.position += direction * (m_cameraMoveSpeed * deltaTime);
@@ -170,6 +141,15 @@ Sprite& Scene::createSprite(std::shared_ptr<Texture> texture, const Transform& i
     return *sprite;
 }
 
+bool Scene::movePrimaryObject(const glm::vec2& displacement, float collisionScale) {
+    RenderObject* primaryObject = getPrimaryObject();
+    if (primaryObject == nullptr) {
+        return false;
+    }
+
+    return moveObjectWithTileCollisions(*primaryObject, displacement, collisionScale);
+}
+
 const std::vector<std::shared_ptr<RenderObject>>& Scene::getObjects() const {
     return m_renderObjects;
 }
@@ -188,10 +168,6 @@ const Camera& Scene::getCamera() const {
 
 Camera& Scene::getCamera() {
     return m_camera;
-}
-
-void Scene::setObjectInputDirection(const glm::vec2& direction) {
-    m_objectInputDirection = direction;
 }
 
 void Scene::setCameraInputDirection(const glm::vec2& direction) {
@@ -235,8 +211,33 @@ bool Scene::collidesWithSolidTiles(const AABB& bounds) const {
     return false;
 }
 
-glm::vec2 Scene::getPrimaryObjectHalfSize(const RenderObject& object) const {
-    return object.transform.scale * (0.5f * m_primaryCollisionScale);
+bool Scene::moveObjectWithTileCollisions(RenderObject& object, const glm::vec2& displacement, float collisionScale) {
+    const glm::vec2 halfSize = getObjectHalfSize(object, collisionScale);
+    glm::vec2 nextPosition = object.transform.position;
+    bool moved = false;
+
+    if (displacement.x != 0.0f) {
+        const glm::vec2 candidate(nextPosition.x + displacement.x, nextPosition.y);
+        if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
+            nextPosition.x = candidate.x;
+            moved = true;
+        }
+    }
+
+    if (displacement.y != 0.0f) {
+        const glm::vec2 candidate(nextPosition.x, nextPosition.y + displacement.y);
+        if (!collidesWithSolidTiles(AABB::fromCenterAndHalfSize(candidate, halfSize))) {
+            nextPosition.y = candidate.y;
+            moved = true;
+        }
+    }
+
+    object.transform.position = nextPosition;
+    return moved;
+}
+
+glm::vec2 Scene::getObjectHalfSize(const RenderObject& object, float collisionScale) const {
+    return object.transform.scale * (0.5f * collisionScale);
 }
 
 } // namespace simple_engine

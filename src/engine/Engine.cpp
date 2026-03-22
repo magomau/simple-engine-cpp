@@ -60,7 +60,7 @@ void Engine::run() {
         previousCounter = currentCounter;
 
         m_application->processEvents(m_running);
-        m_application->getScene().update(deltaTime);
+        m_application->update(deltaTime);
         m_application->getScene().render(*m_renderer, *m_window);
         SDL_Delay(16);
     }

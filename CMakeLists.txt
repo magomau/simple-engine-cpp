@@ -23,6 +23,7 @@ add_executable(SimpleEngine
     src/engine/GLFunctions.cpp
     src/engine/Collision.cpp
     src/engine/Transform.cpp
+    src/engine/PlayerController.cpp
     src/engine/RenderObject.cpp
     src/engine/Sprite.cpp
     src/engine/SpriteAnimation.cpp
