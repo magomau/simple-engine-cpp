@@ -1,5 +1,6 @@
 #include "Scene.h"
 
+#include <algorithm>
 #include <memory>
 #include <string>
 
@@ -7,6 +8,7 @@
 #include <glm/vec4.hpp>
 
 #include "Material.h"
+#include "ParallaxLayer.h"
 #include "PrimitiveFactory.h"
 #include "Renderer.h"
 #include "Sprite.h"
@@ -28,6 +30,15 @@ Scene::Scene()
     if (!checkerTexture->loadFromFile(texturePath)) {
         checkerTexture.reset();
     }
+
+    ParallaxLayer skyLayer(checkerTexture, glm::vec2(0.0f, 2.2f), glm::vec2(8.5f, 3.5f), 0.10f, glm::vec4(0.70f, 0.82f, 1.00f, 1.0f), -30);
+    addParallaxLayer(skyLayer);
+
+    ParallaxLayer mountainLayer(checkerTexture, glm::vec2(0.0f, 1.2f), glm::vec2(7.0f, 2.4f), 0.35f, glm::vec4(0.55f, 0.68f, 0.86f, 1.0f), -20);
+    addParallaxLayer(mountainLayer);
+
+    ParallaxLayer nearBackgroundLayer(checkerTexture, glm::vec2(0.0f, 0.2f), glm::vec2(6.0f, 1.8f), 0.60f, glm::vec4(0.42f, 0.52f, 0.68f, 1.0f), -10);
+    addParallaxLayer(nearBackgroundLayer);
 
     const std::shared_ptr<Material> orangeMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
     const std::shared_ptr<Material> blueMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.35f, 0.85f, 1.0f, 1.0f));
@@ -55,6 +66,7 @@ Scene::Scene()
 
     TextureAtlas tileAtlas(checkerTexture, 2, 2);
     Tilemap collisionTilemap(tileAtlas, 8, 6, glm::vec2(0.5f, 0.5f), glm::vec2(-2.0f, 2.0f));
+    collisionTilemap.setRenderLayer(0);
 
     for (int x = 0; x < collisionTilemap.getWidth(); ++x) {
         collisionTilemap.setTile(x, collisionTilemap.getHeight() - 1, x % 4);
@@ -93,6 +105,14 @@ void Scene::update(float deltaTime) {
     }
 
     m_camera.update(deltaTime);
+
+    for (const std::shared_ptr<ParallaxLayer>& layer : m_parallaxLayers) {
+        if (!layer) {
+            continue;
+        }
+
+        layer->update(m_camera.position);
+    }
 
     for (const std::shared_ptr<RenderObject>& object : m_objects) {
         if (!object) {
@@ -154,6 +174,17 @@ Sprite& Scene::createSprite(std::shared_ptr<Texture> texture, const Transform& i
     return *sprite;
 }
 
+ParallaxLayer& Scene::addParallaxLayer(const ParallaxLayer& layer) {
+    std::shared_ptr<ParallaxLayer> layerInstance = std::make_shared<ParallaxLayer>(layer);
+    layerInstance->initialize(m_defaultShader);
+    if (layerInstance->getSprite()) {
+        layerInstance->update(m_camera.position);
+    }
+    m_parallaxLayers.push_back(layerInstance);
+    rebuildRenderObjects();
+    return *layerInstance;
+}
+
 bool Scene::movePrimaryObject(const glm::vec2& displacement, float collisionScale) {
     RenderObject* primaryObject = getPrimaryObject();
     if (primaryObject == nullptr) {
@@ -197,7 +228,19 @@ Tilemap& Scene::addTilemap(const Tilemap& tilemap) {
 }
 
 void Scene::rebuildRenderObjects() {
-    m_renderObjects = m_objects;
+    m_renderObjects.clear();
+
+    for (const std::shared_ptr<ParallaxLayer>& layer : m_parallaxLayers) {
+        if (!layer || !layer->getSprite()) {
+            continue;
+        }
+
+        m_renderObjects.push_back(layer->getSprite());
+    }
+
+    for (const std::shared_ptr<RenderObject>& object : m_objects) {
+        m_renderObjects.push_back(object);
+    }
 
     for (const std::shared_ptr<Tilemap>& tilemap : m_tilemaps) {
         if (!tilemap) {
@@ -208,6 +251,14 @@ void Scene::rebuildRenderObjects() {
             m_renderObjects.push_back(sprite);
         }
     }
+
+    std::stable_sort(m_renderObjects.begin(), m_renderObjects.end(), [](const std::shared_ptr<RenderObject>& left, const std::shared_ptr<RenderObject>& right) {
+        if (!left || !right) {
+            return static_cast<bool>(left);
+        }
+
+        return left->renderLayer < right->renderLayer;
+    });
 }
 
 bool Scene::collidesWithSolidTiles(const AABB& bounds) const {

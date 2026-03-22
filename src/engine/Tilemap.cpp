@@ -12,6 +12,7 @@ Tilemap::Tilemap()
     , m_tileSize(1.0f, 1.0f)
     , m_width(0)
     , m_height(0)
+    , m_renderLayer(0)
     , m_dirty(false) {
 }
 
@@ -21,6 +22,7 @@ Tilemap::Tilemap(const TextureAtlas& atlas, int width, int height, const glm::ve
     , m_tileSize(tileSize)
     , m_width(std::max(width, 0))
     , m_height(std::max(height, 0))
+    , m_renderLayer(0)
     , m_dirty(false) {
     m_tiles.resize(static_cast<std::size_t>(m_width * m_height), -1);
     m_solidTiles.resize(static_cast<std::size_t>(m_width * m_height), false);
@@ -119,6 +121,20 @@ void Tilemap::setTileSize(const glm::vec2& tileSize) {
     rebuildSprites();
 }
 
+void Tilemap::setRenderLayer(int renderLayer) {
+    m_renderLayer = renderLayer;
+
+    for (const std::shared_ptr<Sprite>& sprite : m_sprites) {
+        if (!sprite) {
+            continue;
+        }
+
+        sprite->renderLayer = m_renderLayer;
+    }
+
+    m_dirty = true;
+}
+
 int Tilemap::getWidth() const {
     return m_width;
 }
@@ -143,6 +159,10 @@ AABB Tilemap::getWorldBounds() const {
 
 const std::vector<std::shared_ptr<Sprite>>& Tilemap::getSprites() const {
     return m_sprites;
+}
+
+int Tilemap::getRenderLayer() const {
+    return m_renderLayer;
 }
 
 bool Tilemap::isDirty() const {
@@ -188,6 +208,7 @@ void Tilemap::rebuildSprites() {
             }
 
             sprite->setAtlasRegionByIndex(m_atlas, atlasIndex);
+            sprite->renderLayer = m_renderLayer;
             m_sprites.push_back(sprite);
         }
     }

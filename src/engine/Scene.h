@@ -9,12 +9,14 @@
 #include "Camera.h"
 #include "Collision.h"
 #include "Material.h"
+#include "ParallaxLayer.h"
 #include "RenderObject.h"
 
 namespace simple_engine {
 
 class Renderer;
 class Shader;
+class ParallaxLayer;
 class Sprite;
 class Texture;
 class Tilemap;
@@ -30,6 +32,7 @@ public:
     RenderObject& createRenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed = 0.0f);
     Sprite& createSprite(std::shared_ptr<Texture> texture, const Transform& initialTransform, const glm::vec4& tint = glm::vec4(1.0f), float initialRotationSpeed = 0.0f);
     Tilemap& addTilemap(const Tilemap& tilemap);
+    ParallaxLayer& addParallaxLayer(const ParallaxLayer& layer);
     bool movePrimaryObject(const glm::vec2& displacement, float collisionScale = 0.8f);
 
     const std::vector<std::shared_ptr<RenderObject>>& getObjects() const;
@@ -45,6 +48,7 @@ private:
     void rebuildRenderObjects();
 
     std::vector<std::shared_ptr<RenderObject>> m_objects;
+    std::vector<std::shared_ptr<ParallaxLayer>> m_parallaxLayers;
     std::vector<std::shared_ptr<Tilemap>> m_tilemaps;
     std::vector<std::shared_ptr<RenderObject>> m_renderObjects;
     std::shared_ptr<Shader> m_defaultShader;

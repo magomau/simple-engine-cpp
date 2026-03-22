@@ -29,6 +29,7 @@ public:
 
     void setPosition(const glm::vec2& position);
     void setTileSize(const glm::vec2& tileSize);
+    void setRenderLayer(int renderLayer);
 
     int getWidth() const;
     int getHeight() const;
@@ -36,6 +37,7 @@ public:
     const glm::vec2& getTileSize() const;
     AABB getWorldBounds() const;
     const std::vector<std::shared_ptr<Sprite>>& getSprites() const;
+    int getRenderLayer() const;
 
     bool isDirty() const;
     void clearDirty();
@@ -54,6 +56,7 @@ private:
     glm::vec2 m_tileSize;
     int m_width;
     int m_height;
+    int m_renderLayer;
     bool m_dirty;
 };
 
