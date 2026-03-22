@@ -14,6 +14,7 @@
 #include "Sprite.h"
 #include "Tilemap.h"
 #include "Texture.h"
+#include "UIElement.h"
 #include "Window.h"
 
 namespace simple_engine {
@@ -39,6 +40,15 @@ Scene::Scene()
 
     ParallaxLayer nearBackgroundLayer(checkerTexture, glm::vec2(0.0f, 0.2f), glm::vec2(6.0f, 1.8f), 0.60f, glm::vec4(0.42f, 0.52f, 0.68f, 1.0f), -10);
     addParallaxLayer(nearBackgroundLayer);
+
+    UIElement healthPanel(checkerTexture, glm::vec2(20.0f, 20.0f), glm::vec2(180.0f, 28.0f), UIAnchor::TopLeft, glm::vec4(0.18f, 0.22f, 0.30f, 0.95f), 1000);
+    addUIElement(healthPanel);
+
+    UIElement healthFill(checkerTexture, glm::vec2(24.0f, 24.0f), glm::vec2(120.0f, 20.0f), UIAnchor::TopLeft, glm::vec4(0.92f, 0.28f, 0.24f, 0.95f), 1001);
+    addUIElement(healthFill);
+
+    UIElement hudIcon(checkerTexture, glm::vec2(20.0f, 56.0f), glm::vec2(32.0f, 32.0f), UIAnchor::TopLeft, glm::vec4(1.0f), 1002);
+    addUIElement(hudIcon);
 
     const std::shared_ptr<Material> orangeMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.95f, 0.55f, 0.20f, 1.0f));
     const std::shared_ptr<Material> blueMaterial = std::make_shared<Material>(m_defaultShader, glm::vec4(0.35f, 0.85f, 1.0f, 1.0f));
@@ -145,9 +155,17 @@ void Scene::update(float deltaTime) {
     if (tilemapChanged) {
         rebuildRenderObjects();
     }
+
+    for (const std::shared_ptr<UIElement>& element : m_uiElements) {
+        if (!element) {
+            continue;
+        }
+
+        element->update(deltaTime);
+    }
 }
 
-void Scene::render(Renderer& renderer, Window& window) const {
+void Scene::render(Renderer& renderer, Window& window) {
     renderer.renderScene(window, *this);
 }
 
@@ -185,6 +203,14 @@ ParallaxLayer& Scene::addParallaxLayer(const ParallaxLayer& layer) {
     return *layerInstance;
 }
 
+UIElement& Scene::addUIElement(const UIElement& element) {
+    std::shared_ptr<UIElement> elementInstance = std::make_shared<UIElement>(element);
+    elementInstance->initialize(m_defaultShader);
+    m_uiElements.push_back(elementInstance);
+    rebuildUIRenderObjects();
+    return *elementInstance;
+}
+
 bool Scene::movePrimaryObject(const glm::vec2& displacement, float collisionScale) {
     RenderObject* primaryObject = getPrimaryObject();
     if (primaryObject == nullptr) {
@@ -196,6 +222,10 @@ bool Scene::movePrimaryObject(const glm::vec2& displacement, float collisionScal
 
 const std::vector<std::shared_ptr<RenderObject>>& Scene::getObjects() const {
     return m_renderObjects;
+}
+
+const std::vector<std::shared_ptr<RenderObject>>& Scene::getUIObjects() const {
+    return m_uiRenderObjects;
 }
 
 RenderObject* Scene::getPrimaryObject() {
@@ -259,6 +289,38 @@ void Scene::rebuildRenderObjects() {
 
         return left->renderLayer < right->renderLayer;
     });
+}
+
+void Scene::rebuildUIRenderObjects() {
+    m_uiRenderObjects.clear();
+
+    for (const std::shared_ptr<UIElement>& element : m_uiElements) {
+        if (!element || !element->getSprite()) {
+            continue;
+        }
+
+        m_uiRenderObjects.push_back(element->getSprite());
+    }
+
+    std::stable_sort(m_uiRenderObjects.begin(), m_uiRenderObjects.end(), [](const std::shared_ptr<RenderObject>& left, const std::shared_ptr<RenderObject>& right) {
+        if (!left || !right) {
+            return static_cast<bool>(left);
+        }
+
+        return left->renderLayer < right->renderLayer;
+    });
+}
+
+void Scene::updateUILayout(int viewportWidth, int viewportHeight) {
+    for (const std::shared_ptr<UIElement>& element : m_uiElements) {
+        if (!element) {
+            continue;
+        }
+
+        element->updateLayout(viewportWidth, viewportHeight);
+    }
+
+    rebuildUIRenderObjects();
 }
 
 bool Scene::collidesWithSolidTiles(const AABB& bounds) const {

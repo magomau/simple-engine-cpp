@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/mat4x4.hpp>
 
 #include "GLFunctions.h"
@@ -41,7 +42,7 @@ bool Renderer::init(Window& window) {
     return true;
 }
 
-void Renderer::renderScene(Window& window, const Scene& scene) {
+void Renderer::renderScene(Window& window, Scene& scene) {
     int width = 0;
     int height = 0;
     window.getDrawableSize(width, height);
@@ -61,6 +62,20 @@ void Renderer::renderScene(Window& window, const Scene& scene) {
             }
 
             object->material->apply(object->transform.getMatrix(), view, projection);
+            object->mesh->draw();
+        }
+
+        scene.updateUILayout(width, height);
+
+        const glm::mat4 uiView(1.0f);
+        const glm::mat4 uiProjection = glm::ortho(0.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), -1.0f, 1.0f);
+
+        for (const std::shared_ptr<RenderObject>& object : scene.getUIObjects()) {
+            if (!object || !object->mesh || !object->material || !object->material->isValid()) {
+                continue;
+            }
+
+            object->material->apply(object->transform.getMatrix(), uiView, uiProjection);
             object->mesh->draw();
         }
     }

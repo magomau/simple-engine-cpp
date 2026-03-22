@@ -28,6 +28,7 @@ add_executable(SimpleEngine
     src/engine/ParallaxLayer.cpp
     src/engine/Sprite.cpp
     src/engine/SpriteAnimation.cpp
+    src/engine/UIElement.cpp
     src/engine/Tilemap.cpp
     src/engine/Scene.cpp
     src/engine/Camera.cpp

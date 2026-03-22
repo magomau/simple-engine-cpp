@@ -11,7 +11,7 @@ public:
     ~Renderer();
 
     bool init(Window& window);
-    void renderScene(Window& window, const Scene& scene);
+    void renderScene(Window& window, Scene& scene);
     void shutdown();
 
 private:
