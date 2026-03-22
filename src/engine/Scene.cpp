@@ -10,6 +10,7 @@
 #include "PrimitiveFactory.h"
 #include "Renderer.h"
 #include "Sprite.h"
+#include "Tilemap.h"
 #include "Texture.h"
 #include "Window.h"
 
@@ -75,6 +76,30 @@ void Scene::update(float deltaTime) {
 
         object->update(deltaTime);
     }
+
+    bool tilemapChanged = false;
+    for (const std::shared_ptr<Tilemap>& tilemap : m_tilemaps) {
+        if (!tilemap) {
+            continue;
+        }
+
+        for (const std::shared_ptr<Sprite>& sprite : tilemap->getSprites()) {
+            if (!sprite) {
+                continue;
+            }
+
+            sprite->update(deltaTime);
+        }
+
+        if (tilemap->isDirty()) {
+            tilemap->clearDirty();
+            tilemapChanged = true;
+        }
+    }
+
+    if (tilemapChanged) {
+        rebuildRenderObjects();
+    }
 }
 
 void Scene::render(Renderer& renderer, Window& window) const {
@@ -84,6 +109,7 @@ void Scene::render(Renderer& renderer, Window& window) const {
 RenderObject& Scene::createRenderObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material, const Transform& initialTransform, float initialRotationSpeed) {
     std::shared_ptr<RenderObject> object = std::make_shared<RenderObject>(std::move(mesh), std::move(material), initialTransform, initialRotationSpeed);
     m_objects.push_back(object);
+    rebuildRenderObjects();
     return *object;
 }
 
@@ -99,11 +125,12 @@ Sprite& Scene::createSprite(std::shared_ptr<Texture> texture, const Transform& i
 
     sprite->rotationSpeed = initialRotationSpeed;
     m_objects.push_back(sprite);
+    rebuildRenderObjects();
     return *sprite;
 }
 
 const std::vector<std::shared_ptr<RenderObject>>& Scene::getObjects() const {
-    return m_objects;
+    return m_renderObjects;
 }
 
 RenderObject* Scene::getPrimaryObject() {
@@ -128,6 +155,29 @@ void Scene::setObjectInputDirection(const glm::vec2& direction) {
 
 void Scene::setCameraInputDirection(const glm::vec2& direction) {
     m_cameraInputDirection = direction;
+}
+
+Tilemap& Scene::addTilemap(const Tilemap& tilemap) {
+    std::shared_ptr<Tilemap> tilemapInstance = std::make_shared<Tilemap>(tilemap);
+    tilemapInstance->initialize(m_defaultShader);
+    tilemapInstance->clearDirty();
+    m_tilemaps.push_back(tilemapInstance);
+    rebuildRenderObjects();
+    return *tilemapInstance;
+}
+
+void Scene::rebuildRenderObjects() {
+    m_renderObjects = m_objects;
+
+    for (const std::shared_ptr<Tilemap>& tilemap : m_tilemaps) {
+        if (!tilemap) {
+            continue;
+        }
+
+        for (const std::shared_ptr<Sprite>& sprite : tilemap->getSprites()) {
+            m_renderObjects.push_back(sprite);
+        }
+    }
 }
 
 } // namespace simple_engine
