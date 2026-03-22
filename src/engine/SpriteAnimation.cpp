@@ -15,10 +15,11 @@ SpriteAnimation::SpriteAnimation()
     , m_frameDuration(0.1f)
     , m_accumulatedTime(0.0f)
     , m_loop(true)
-    , m_playing(false) {
+    , m_playing(false)
+    , m_atlasRegion() {
 }
 
-void SpriteAnimation::configureGrid(int frameCount, int columns, int rows, float frameDurationSeconds, bool shouldLoop, int startFrame) {
+void SpriteAnimation::configureGrid(int frameCount, int columns, int rows, float frameDurationSeconds, bool shouldLoop, int startFrame, const AtlasRegion& atlasRegion) {
     m_columns = std::max(columns, 1);
     m_rows = std::max(rows, 1);
     const int totalFrames = m_columns * m_rows;
@@ -30,6 +31,7 @@ void SpriteAnimation::configureGrid(int frameCount, int columns, int rows, float
     m_currentFrame = m_startFrame;
     m_accumulatedTime = 0.0f;
     m_playing = true;
+    m_atlasRegion = atlasRegion.isValid() ? atlasRegion : AtlasRegion();
 
     clampCurrentFrame();
 }
@@ -69,10 +71,11 @@ void SpriteAnimation::apply(Material& material) const {
     const glm::vec2 frameSize = getFrameSize();
     const int column = m_currentFrame % m_columns;
     const int row = m_currentFrame / m_columns;
+    const glm::vec2 baseMin = m_atlasRegion.minUV;
 
     const glm::vec2 minUV(
-        static_cast<float>(column) * frameSize.x,
-        static_cast<float>(row) * frameSize.y);
+        baseMin.x + (static_cast<float>(column) * frameSize.x),
+        baseMin.y + (static_cast<float>(row) * frameSize.y));
     const glm::vec2 maxUV = minUV + frameSize;
 
     material.setTextureRegion(minUV, maxUV);
@@ -121,6 +124,18 @@ int SpriteAnimation::getCurrentFrame() const {
     return m_currentFrame;
 }
 
+int SpriteAnimation::getColumns() const {
+    return m_columns;
+}
+
+int SpriteAnimation::getRows() const {
+    return m_rows;
+}
+
+int SpriteAnimation::getStartFrame() const {
+    return m_startFrame;
+}
+
 float SpriteAnimation::getFrameDuration() const {
     return m_frameDuration;
 }
@@ -130,7 +145,14 @@ bool SpriteAnimation::isLooping() const {
 }
 
 glm::vec2 SpriteAnimation::getFrameSize() const {
-    return glm::vec2(1.0f / static_cast<float>(m_columns), 1.0f / static_cast<float>(m_rows));
+    const glm::vec2 atlasSize = m_atlasRegion.getSize();
+    return glm::vec2(
+        atlasSize.x / static_cast<float>(m_columns),
+        atlasSize.y / static_cast<float>(m_rows));
+}
+
+const AtlasRegion& SpriteAnimation::getAtlasRegion() const {
+    return m_atlasRegion;
 }
 
 void SpriteAnimation::clampCurrentFrame() {

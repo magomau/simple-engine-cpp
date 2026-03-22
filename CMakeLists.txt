@@ -30,6 +30,7 @@ add_executable(SimpleEngine
     src/engine/Mesh.cpp
     src/engine/PrimitiveFactory.cpp
     src/engine/Texture.cpp
+    src/engine/TextureAtlas.cpp
     src/engine/Material.cpp
     src/core/Logger.cpp
 )

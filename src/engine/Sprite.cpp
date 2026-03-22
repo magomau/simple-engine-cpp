@@ -10,12 +10,14 @@
 namespace simple_engine {
 
 Sprite::Sprite()
-    : m_hasAnimation(false) {
+    : m_hasAnimation(false)
+    , m_atlasRegion() {
 }
 
 Sprite::Sprite(std::shared_ptr<Mesh> sharedQuadMesh, std::shared_ptr<Material> spriteMaterial, const Transform& initialTransform)
     : RenderObject(std::move(sharedQuadMesh), std::move(spriteMaterial), initialTransform, 0.0f)
-    , m_hasAnimation(false) {
+    , m_hasAnimation(false)
+    , m_atlasRegion() {
 }
 
 std::shared_ptr<Sprite> Sprite::create(std::shared_ptr<Shader> shader, std::shared_ptr<Texture> texture, const Transform& initialTransform, const glm::vec4& tint) {
@@ -78,30 +80,54 @@ void Sprite::setSize(const glm::vec2& size) {
 }
 
 void Sprite::setTextureRegion(const glm::vec2& minUV, const glm::vec2& maxUV) {
-    std::shared_ptr<Material> spriteMaterial = getSpriteMaterial();
-    if (!spriteMaterial) {
+    setAtlasRegion(AtlasRegion(minUV, maxUV));
+}
+
+void Sprite::setAtlasRegion(const AtlasRegion& region) {
+    m_atlasRegion = region.isValid() ? region : AtlasRegion();
+
+    if (m_hasAnimation) {
+        setAnimationFromAtlasRegion(
+            m_atlasRegion,
+            m_animation.getFrameCount(),
+            m_animation.getColumns(),
+            m_animation.getRows(),
+            m_animation.getFrameDuration(),
+            m_animation.isLooping(),
+            m_animation.getStartFrame());
         return;
     }
 
-    spriteMaterial->setTextureRegion(minUV, maxUV);
+    applyCurrentTextureRegion();
+}
+
+void Sprite::setAtlasRegion(const TextureAtlas& atlas, int column, int row, int widthInCells, int heightInCells) {
+    setTexture(atlas.getTexture());
+    setAtlasRegion(atlas.getRegion(column, row, widthInCells, heightInCells));
+}
+
+void Sprite::setAtlasRegionByIndex(const TextureAtlas& atlas, int index, int widthInCells, int heightInCells) {
+    setTexture(atlas.getTexture());
+    setAtlasRegion(atlas.getRegionByIndex(index, widthInCells, heightInCells));
 }
 
 void Sprite::resetTextureRegion() {
-    std::shared_ptr<Material> spriteMaterial = getSpriteMaterial();
-    if (!spriteMaterial) {
-        return;
-    }
-
-    spriteMaterial->resetTextureRegion();
+    m_atlasRegion = AtlasRegion();
+    applyCurrentTextureRegion();
 }
 
 void Sprite::setAnimationGrid(int frameCount, int columns, int rows, float frameDurationSeconds, bool shouldLoop, int startFrame) {
+    setAnimationFromAtlasRegion(m_atlasRegion, frameCount, columns, rows, frameDurationSeconds, shouldLoop, startFrame);
+}
+
+void Sprite::setAnimationFromAtlasRegion(const AtlasRegion& region, int frameCount, int columns, int rows, float frameDurationSeconds, bool shouldLoop, int startFrame) {
     std::shared_ptr<Material> spriteMaterial = getSpriteMaterial();
     if (!spriteMaterial) {
         return;
     }
 
-    m_animation.configureGrid(frameCount, columns, rows, frameDurationSeconds, shouldLoop, startFrame);
+    m_atlasRegion = region.isValid() ? region : AtlasRegion();
+    m_animation.configureGrid(frameCount, columns, rows, frameDurationSeconds, shouldLoop, startFrame, m_atlasRegion);
     m_animation.apply(*spriteMaterial);
     m_hasAnimation = m_animation.isValid();
 }
@@ -109,7 +135,7 @@ void Sprite::setAnimationGrid(int frameCount, int columns, int rows, float frame
 void Sprite::clearAnimation() {
     m_hasAnimation = false;
     m_animation.stop();
-    resetTextureRegion();
+    applyCurrentTextureRegion();
 }
 
 bool Sprite::hasAnimation() const {
@@ -124,8 +150,26 @@ const SpriteAnimation& Sprite::getAnimation() const {
     return m_animation;
 }
 
+const AtlasRegion& Sprite::getAtlasRegion() const {
+    return m_atlasRegion;
+}
+
 std::shared_ptr<Material> Sprite::getSpriteMaterial() const {
     return material;
+}
+
+void Sprite::applyCurrentTextureRegion() {
+    std::shared_ptr<Material> spriteMaterial = getSpriteMaterial();
+    if (!spriteMaterial) {
+        return;
+    }
+
+    if (m_hasAnimation) {
+        m_animation.apply(*spriteMaterial);
+        return;
+    }
+
+    spriteMaterial->setTextureRegion(m_atlasRegion.minUV, m_atlasRegion.maxUV);
 }
 
 } // namespace simple_engine
