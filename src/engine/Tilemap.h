@@ -34,6 +34,7 @@ public:
     int getHeight() const;
     const glm::vec2& getPosition() const;
     const glm::vec2& getTileSize() const;
+    AABB getWorldBounds() const;
     const std::vector<std::shared_ptr<Sprite>>& getSprites() const;
 
     bool isDirty() const;

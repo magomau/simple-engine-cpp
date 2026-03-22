@@ -15,6 +15,11 @@ public:
     void setFollowTarget(const glm::vec2& target);
     void clearFollowTarget();
     void setFollowSharpness(float sharpness);
+    void setDeadZone(const glm::vec2& size);
+    glm::vec2 getDeadZone() const;
+    void setBounds(const glm::vec2& minBounds, const glm::vec2& maxBounds);
+    void clearBounds();
+    bool hasBounds() const;
     float getFollowSharpness() const;
     bool hasFollowTarget() const;
 
@@ -23,8 +28,15 @@ public:
     float halfHeight;
 
 private:
+    glm::vec2 clampToBounds(const glm::vec2& value) const;
+
     float m_followSharpness;
+    glm::vec2 m_deadZoneHalfSize;
+    glm::vec2 m_boundsMin;
+    glm::vec2 m_boundsMax;
+    float m_lastAspectRatio;
     bool m_hasFollowTarget;
+    bool m_hasBounds;
 };
 
 } // namespace simple_engine

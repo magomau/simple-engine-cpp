@@ -135,6 +135,12 @@ const glm::vec2& Tilemap::getTileSize() const {
     return m_tileSize;
 }
 
+AABB Tilemap::getWorldBounds() const {
+    const glm::vec2 minBounds = m_position + glm::vec2(0.0f, -static_cast<float>(m_height) * m_tileSize.y);
+    const glm::vec2 maxBounds = m_position + glm::vec2(static_cast<float>(m_width) * m_tileSize.x, 0.0f);
+    return AABB(minBounds, maxBounds);
+}
+
 const std::vector<std::shared_ptr<Sprite>>& Tilemap::getSprites() const {
     return m_sprites;
 }

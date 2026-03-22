@@ -73,7 +73,10 @@ Scene::Scene()
     collisionTilemap.setTile(5, 3, 0);
     collisionTilemap.setTileSolid(5, 3, true);
 
-    addTilemap(collisionTilemap);
+    Tilemap& worldTilemap = addTilemap(collisionTilemap);
+    m_camera.setDeadZone(glm::vec2(0.75f, 0.45f));
+    const AABB worldBounds = worldTilemap.getWorldBounds();
+    m_camera.setBounds(worldBounds.min, worldBounds.max);
 }
 
 void Scene::update(float deltaTime) {
