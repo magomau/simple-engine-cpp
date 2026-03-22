@@ -51,6 +51,7 @@ private:
     Camera m_camera;
     glm::vec2 m_cameraInputDirection;
     float m_cameraMoveSpeed;
+    glm::vec2 m_cameraFollowOffset;
 };
 
 } // namespace simple_engine

@@ -18,7 +18,8 @@ namespace simple_engine {
 
 Scene::Scene()
     : m_cameraInputDirection(0.0f, 0.0f)
-    , m_cameraMoveSpeed(1.8f) {
+    , m_cameraMoveSpeed(1.8f)
+    , m_cameraFollowOffset(0.0f, 0.0f) {
     const std::shared_ptr<Mesh> triangleMesh = PrimitiveFactory::createTriangle();
     m_defaultShader = Material::createDefaultShader();
 
@@ -78,8 +79,17 @@ Scene::Scene()
 void Scene::update(float deltaTime) {
     if (glm::length(m_cameraInputDirection) > 0.0f) {
         const glm::vec2 direction = glm::normalize(m_cameraInputDirection);
-        m_camera.position += direction * (m_cameraMoveSpeed * deltaTime);
+        m_cameraFollowOffset += direction * (m_cameraMoveSpeed * deltaTime);
     }
+
+    RenderObject* primaryObject = getPrimaryObject();
+    if (primaryObject != nullptr) {
+        m_camera.setFollowTarget(primaryObject->transform.position + m_cameraFollowOffset);
+    } else {
+        m_camera.clearFollowTarget();
+    }
+
+    m_camera.update(deltaTime);
 
     for (const std::shared_ptr<RenderObject>& object : m_objects) {
         if (!object) {
