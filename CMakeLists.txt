@@ -37,7 +37,11 @@ add_executable(SimpleEngine
     src/engine/TextureAtlas.cpp
     src/engine/Material.cpp
     src/game/Game.cpp
+    src/game/GameState.cpp
     src/game/GameScene.cpp
+    src/game/GameplayState.cpp
+    src/game/MainMenuState.cpp
+    src/game/PauseState.cpp
     src/game/PlayerController.cpp
     src/core/Logger.cpp
 )

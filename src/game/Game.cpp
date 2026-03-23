@@ -1,14 +1,19 @@
 #include "Game.h"
 
-#include "GameScene.h"
+#include "GameState.h"
+#include "GameplayState.h"
+#include "MainMenuState.h"
+#include "PauseState.h"
 #include "engine/GLFunctions.h"
 #include "engine/Input.h"
-#include "engine/RenderObject.h"
 #include "core/Logger.h"
 
 namespace simple_game {
 
-Game::Game() = default;
+Game::Game()
+    : m_activeState(nullptr) {
+}
+
 Game::~Game() = default;
 
 bool Game::init() {
@@ -19,42 +24,92 @@ bool Game::init() {
         return false;
     }
 
-    m_scene = std::make_unique<GameScene>();
-    if (!m_scene->build()) {
-        simple_engine::Logger::error("Failed to build GameScene.");
-        m_scene.reset();
+    m_mainMenuState = std::make_unique<MainMenuState>();
+    m_gameplayState = std::make_unique<GameplayState>();
+    m_pauseState = std::make_unique<PauseState>();
+
+    if (!changeState(GameStateId::MainMenu)) {
+        simple_engine::Logger::error("Failed to enter initial MainMenuState.");
         return false;
     }
 
-    simple_engine::Logger::info("Game::init completed after OpenGL initialization.");
+    simple_engine::Logger::info("Game::init completed after OpenGL initialization and state setup.");
     return true;
 }
 
+void Game::handleEvent(const SDL_Event& event) {
+    if (m_activeState) {
+        m_activeState->handleEvent(*this, event);
+    }
+}
+
 void Game::update(const simple_engine::Input& input, float deltaTime) {
-    if (!m_scene) {
+    if (!m_activeState) {
         return;
     }
 
-    simple_engine::RenderObject* player = m_scene->getPlayer();
-    if (player != nullptr) {
-        m_playerController.update(input, *m_scene, *player, deltaTime);
-    }
-
-    m_scene->update(deltaTime);
+    m_activeState->update(*this, input, deltaTime);
 }
 
 void Game::render(simple_engine::Renderer& renderer, simple_engine::Window& window) {
-    if (!m_scene) {
+    if (!m_activeState) {
         return;
     }
 
-    m_scene->render(renderer, window);
+    m_activeState->render(*this, renderer, window);
 }
 
 void Game::shutdown() {
-    if (m_scene) {
-        simple_engine::Logger::info("Shutting down game scene.");
-        m_scene.reset();
+    if (m_activeState) {
+        m_activeState->exit(*this);
+        m_activeState = nullptr;
+    }
+
+    m_pauseState.reset();
+    m_gameplayState.reset();
+    m_mainMenuState.reset();
+    simple_engine::Logger::info("Game states shut down.");
+}
+
+bool Game::changeState(GameStateId nextState) {
+    GameState* nextStateInstance = getStateInstance(nextState);
+    if (!nextStateInstance) {
+        simple_engine::Logger::error("Requested game state is not available.");
+        return false;
+    }
+
+    if (m_activeState == nextStateInstance) {
+        return true;
+    }
+
+    if (m_activeState) {
+        m_activeState->exit(*this);
+    }
+
+    if (!nextStateInstance->enter(*this)) {
+        simple_engine::Logger::error("Failed to enter requested game state.");
+        return false;
+    }
+
+    m_activeState = nextStateInstance;
+    simple_engine::Logger::info("Game state transition completed.");
+    return true;
+}
+
+GameplayState* Game::getGameplayState() const {
+    return m_gameplayState.get();
+}
+
+GameState* Game::getStateInstance(GameStateId stateId) {
+    switch (stateId) {
+    case GameStateId::MainMenu:
+        return m_mainMenuState.get();
+    case GameStateId::Gameplay:
+        return m_gameplayState.get();
+    case GameStateId::Pause:
+        return m_pauseState.get();
+    default:
+        return nullptr;
     }
 }
 
