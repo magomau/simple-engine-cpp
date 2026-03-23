@@ -34,13 +34,16 @@ public:
     void setSize(const glm::vec2& size);
     void setAnchor(UIAnchor anchor);
     void setRenderLayer(int renderLayer);
+    void setTint(const glm::vec4& tint);
     void setAtlasRegion(const AtlasRegion& region);
 
     const glm::vec2& getScreenPosition() const;
     const glm::vec2& getSize() const;
     UIAnchor getAnchor() const;
     int getRenderLayer() const;
+    const glm::vec4& getTint() const;
     std::shared_ptr<Sprite> getSprite() const;
+    bool containsScreenPoint(const glm::vec2& screenPoint, int viewportWidth, int viewportHeight) const;
 
 private:
     glm::vec2 getAnchoredPosition(int viewportWidth, int viewportHeight) const;

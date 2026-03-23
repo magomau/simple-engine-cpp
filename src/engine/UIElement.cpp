@@ -42,6 +42,9 @@ void UIElement::initialize(std::shared_ptr<Shader> shader) {
 
     m_sprite->renderLayer = m_renderLayer;
     m_sprite->setAtlasRegion(m_region);
+    if (m_sprite->material) {
+        m_sprite->material->baseColor = m_tint;
+    }
 }
 
 void UIElement::update(float deltaTime) {
@@ -60,6 +63,9 @@ void UIElement::updateLayout(int viewportWidth, int viewportHeight) {
     m_sprite->transform.scale = m_size;
     m_sprite->transform.position = getAnchoredPosition(viewportWidth, viewportHeight);
     m_sprite->renderLayer = m_renderLayer;
+    if (m_sprite->material) {
+        m_sprite->material->baseColor = m_tint;
+    }
 }
 
 void UIElement::setScreenPosition(const glm::vec2& screenPosition) {
@@ -78,6 +84,13 @@ void UIElement::setRenderLayer(int renderLayer) {
     m_renderLayer = renderLayer;
     if (m_sprite) {
         m_sprite->renderLayer = m_renderLayer;
+    }
+}
+
+void UIElement::setTint(const glm::vec4& tint) {
+    m_tint = tint;
+    if (m_sprite && m_sprite->material) {
+        m_sprite->material->baseColor = m_tint;
     }
 }
 
@@ -104,8 +117,20 @@ int UIElement::getRenderLayer() const {
     return m_renderLayer;
 }
 
+const glm::vec4& UIElement::getTint() const {
+    return m_tint;
+}
+
 std::shared_ptr<Sprite> UIElement::getSprite() const {
     return m_sprite;
+}
+
+bool UIElement::containsScreenPoint(const glm::vec2& screenPoint, int viewportWidth, int viewportHeight) const {
+    const glm::vec2 center = getAnchoredPosition(viewportWidth, viewportHeight);
+    const glm::vec2 halfSize = m_size * 0.5f;
+
+    return screenPoint.x >= (center.x - halfSize.x) && screenPoint.x <= (center.x + halfSize.x)
+        && screenPoint.y >= (center.y - halfSize.y) && screenPoint.y <= (center.y + halfSize.y);
 }
 
 glm::vec2 UIElement::getAnchoredPosition(int viewportWidth, int viewportHeight) const {

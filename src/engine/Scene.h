@@ -45,6 +45,8 @@ public:
     const Camera& getCamera() const;
     Camera& getCamera();
     std::shared_ptr<Shader> getDefaultShader();
+    int getLastViewportWidth() const;
+    int getLastViewportHeight() const;
 
 private:
     std::shared_ptr<Shader> ensureDefaultShader();
@@ -62,6 +64,8 @@ private:
     std::vector<std::shared_ptr<RenderObject>> m_uiRenderObjects;
     std::shared_ptr<Shader> m_defaultShader;
     Camera m_camera;
+    int m_lastViewportWidth;
+    int m_lastViewportHeight;
 };
 
 } // namespace simple_engine

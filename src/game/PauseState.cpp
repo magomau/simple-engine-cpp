@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_scancode.h>
 
 #include <glm/vec4.hpp>
@@ -25,6 +26,10 @@ bool PauseState::enter(Game& game) {
         return buildPauseScene();
     }
 
+    for (UIButton& button : m_buttons) {
+        button.resetInteraction();
+    }
+
     simple_engine::Logger::info("Entering PauseState.");
     return true;
 }
@@ -45,10 +50,11 @@ void PauseState::handleEvent(Game& game, const SDL_Event& event) {
 }
 
 void PauseState::update(Game& game, const simple_engine::Input& input, float deltaTime) {
-    (void)game;
-    (void)input;
-
     if (m_scene) {
+        for (UIButton& button : m_buttons) {
+            button.update(game, input, *m_scene);
+        }
+
         m_scene->update(deltaTime);
     }
 }
@@ -69,21 +75,36 @@ bool PauseState::buildPauseScene() {
     simple_engine::Logger::info("Building PauseState scene.");
 
     m_scene = std::make_unique<simple_engine::Scene>();
+    m_buttons.clear();
 
-    std::shared_ptr<simple_engine::Texture> checkerTexture = std::make_shared<simple_engine::Texture>();
+    m_checkerTexture = std::make_shared<simple_engine::Texture>();
     const std::string texturePath = std::string(SIMPLE_ENGINE_ASSET_ROOT) + "/checker.ppm";
-    if (!checkerTexture->loadFromFile(texturePath)) {
-        checkerTexture.reset();
+    if (!m_checkerTexture->loadFromFile(texturePath)) {
+        m_checkerTexture.reset();
     }
 
     simple_engine::Transform backgroundTransform;
     backgroundTransform.position = glm::vec2(0.0f, 0.0f);
     backgroundTransform.scale = glm::vec2(8.0f, 4.5f);
-    m_scene->createSprite(checkerTexture, backgroundTransform, glm::vec4(0.05f, 0.06f, 0.10f, 1.0f));
+    m_scene->createSprite(m_checkerTexture, backgroundTransform, glm::vec4(0.05f, 0.06f, 0.10f, 1.0f));
 
-    m_scene->addUIElement(simple_engine::UIElement(checkerTexture, glm::vec2(300.0f, 140.0f), glm::vec2(680.0f, 180.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.12f, 0.14f, 0.18f, 0.94f), 1000));
-    m_scene->addUIElement(simple_engine::UIElement(checkerTexture, glm::vec2(340.0f, 182.0f), glm::vec2(600.0f, 40.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.92f, 0.52f, 0.18f, 0.96f), 1001));
-    m_scene->addUIElement(simple_engine::UIElement(checkerTexture, glm::vec2(380.0f, 250.0f), glm::vec2(520.0f, 22.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.35f, 0.76f, 0.48f, 0.95f), 1002));
+    m_scene->addUIElement(simple_engine::UIElement(m_checkerTexture, glm::vec2(300.0f, 140.0f), glm::vec2(680.0f, 180.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.12f, 0.14f, 0.18f, 0.94f), 1000));
+    m_scene->addUIElement(simple_engine::UIElement(m_checkerTexture, glm::vec2(340.0f, 182.0f), glm::vec2(600.0f, 40.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.92f, 0.52f, 0.18f, 0.96f), 1001));
+    m_scene->addUIElement(simple_engine::UIElement(m_checkerTexture, glm::vec2(380.0f, 250.0f), glm::vec2(520.0f, 22.0f), simple_engine::UIAnchor::TopLeft, glm::vec4(0.35f, 0.76f, 0.48f, 0.95f), 1002));
+
+    m_buttons.emplace_back(m_checkerTexture, glm::vec2(390.0f, 322.0f), glm::vec2(220.0f, 52.0f), [](Game& currentGame) {
+        currentGame.changeState(GameStateId::Gameplay);
+    }, simple_engine::UIAnchor::TopLeft, 1010);
+    m_buttons.emplace_back(m_checkerTexture, glm::vec2(390.0f, 392.0f), glm::vec2(220.0f, 52.0f), [](Game& currentGame) {
+        currentGame.changeState(GameStateId::MainMenu);
+    }, simple_engine::UIAnchor::TopLeft, 1011);
+
+    m_buttons[0].setColors(glm::vec4(0.24f, 0.60f, 0.90f, 0.96f), glm::vec4(0.34f, 0.72f, 1.0f, 0.98f), glm::vec4(0.18f, 0.45f, 0.74f, 0.99f));
+    m_buttons[1].setColors(glm::vec4(0.82f, 0.42f, 0.18f, 0.96f), glm::vec4(0.96f, 0.52f, 0.24f, 0.98f), glm::vec4(0.64f, 0.32f, 0.14f, 0.99f));
+
+    for (UIButton& button : m_buttons) {
+        button.initialize(*m_scene);
+    }
 
     return true;
 }

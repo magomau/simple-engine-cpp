@@ -70,6 +70,8 @@ void Engine::run(IGame& game) {
         const float deltaTime = static_cast<float>((currentCounter - previousCounter) / performanceFrequency);
         previousCounter = currentCounter;
 
+        m_input->beginFrame();
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {

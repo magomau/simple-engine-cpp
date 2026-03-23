@@ -1,11 +1,14 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "GameState.h"
+#include "UIButton.h"
 
 namespace simple_engine {
 class Scene;
+class Texture;
 }
 
 namespace simple_game {
@@ -24,6 +27,8 @@ private:
     bool buildMenuScene();
 
     std::unique_ptr<simple_engine::Scene> m_scene;
+    std::shared_ptr<simple_engine::Texture> m_checkerTexture;
+    std::vector<UIButton> m_buttons;
 };
 
 } // namespace simple_game

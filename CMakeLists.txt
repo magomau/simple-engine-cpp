@@ -43,6 +43,7 @@ add_executable(SimpleEngine
     src/game/MainMenuState.cpp
     src/game/PauseState.cpp
     src/game/PlayerController.cpp
+    src/game/UIButton.cpp
     src/core/Logger.cpp
 )
 

@@ -14,6 +14,8 @@ namespace simple_engine {
 
 Scene::Scene() {
     Logger::info("Scene created without GPU resources. Default shader will be created lazily.");
+    m_lastViewportWidth = 1280;
+    m_lastViewportHeight = 720;
 }
 
 void Scene::update(float deltaTime) {
@@ -134,6 +136,14 @@ std::shared_ptr<Shader> Scene::getDefaultShader() {
     return ensureDefaultShader();
 }
 
+int Scene::getLastViewportWidth() const {
+    return m_lastViewportWidth;
+}
+
+int Scene::getLastViewportHeight() const {
+    return m_lastViewportHeight;
+}
+
 Tilemap& Scene::addTilemap(const Tilemap& tilemap) {
     std::shared_ptr<Tilemap> tilemapInstance = std::make_shared<Tilemap>(tilemap);
     tilemapInstance->initialize(ensureDefaultShader());
@@ -207,6 +217,9 @@ void Scene::rebuildUIRenderObjects() {
 }
 
 void Scene::updateUILayout(int viewportWidth, int viewportHeight) {
+    m_lastViewportWidth = viewportWidth;
+    m_lastViewportHeight = viewportHeight;
+
     for (const std::shared_ptr<UIElement>& element : m_uiElements) {
         if (!element) {
             continue;
